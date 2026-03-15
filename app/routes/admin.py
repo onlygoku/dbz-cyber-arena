@@ -1,9 +1,11 @@
 import os
+import json
 import tempfile
 from datetime import datetime
 from flask import (Blueprint, render_template, redirect, url_for, flash,
-                   request, current_app, jsonify)
+                   request, current_app, jsonify, send_from_directory)
 from flask_login import login_required, current_user
+from werkzeug.utils import secure_filename
 from app import db
 from app.models.user import User
 from app.models.team import Team, TeamMember
@@ -17,6 +19,44 @@ from app.utils.decorators import admin_required
 from app.utils.helpers import slugify
 
 admin_bp = Blueprint('admin', __name__)
+
+ALLOWED_EXTENSIONS = {
+    'zip', 'tar', 'gz', 'py', 'c', 'cpp', 'elf', 'exe', 'png', 'jpg',
+    'jpeg', 'gif', 'pcap', 'pcapng', 'txt', 'pdf', 'bin', 'sh', 'js',
+    'html', 'php', 'rb', 'go', 'rs', 'java', 'class', 'jar', 'sql',
+}
+
+
+def _save_challenge_files(challenge_id: int, files) -> list:
+    """Save uploaded files for a challenge. Returns updated file list."""
+    upload_root = os.path.join(current_app.root_path, 'static', 'uploads', 'challenges', str(challenge_id))
+    os.makedirs(upload_root, exist_ok=True)
+
+    saved = []
+    for f in files:
+        if not f or not f.filename:
+            continue
+        filename = secure_filename(f.filename)
+        ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+        if ext not in ALLOWED_EXTENSIONS and ext != '':
+            continue
+        filepath = os.path.join(upload_root, filename)
+        f.save(filepath)
+        size = os.path.getsize(filepath)
+        size_str = f'{size // 1024} KB' if size >= 1024 else f'{size} B'
+        saved.append({'name': filename, 'size': size_str})
+    return saved
+
+
+def _get_existing_files(challenge_id: int) -> list:
+    """Load existing file list from challenge.files_json."""
+    ch = Challenge.query.get(challenge_id)
+    if ch and ch.files_json:
+        try:
+            return json.loads(ch.files_json)
+        except Exception:
+            pass
+    return []
 
 
 @admin_bp.before_request
@@ -128,6 +168,19 @@ def user_action(user_id):
     elif action == 'remove_admin':
         user.is_admin = False
         flash(f'Admin removed from {user.username}.', 'info')
+    elif action == 'delete':
+        if user.id == current_user.id:
+            flash('You cannot delete your own account.', 'error')
+            return redirect(url_for('admin.users'))
+        # Remove team memberships first
+        TeamMember.query.filter_by(user_id=user.id).delete()
+        # Remove submissions and solves
+        Submission.query.filter_by(user_id=user.id).delete()
+        Solve.query.filter_by(user_id=user.id).delete()
+        db.session.delete(user)
+        flash(f'User {user.username} deleted.', 'warning')
+        db.session.commit()
+        return redirect(url_for('admin.users'))
 
     db.session.commit()
     return redirect(url_for('admin.users'))
@@ -164,6 +217,16 @@ def team_action(team_id):
         db.session.commit()
         flush_cache()
         flash(f'Team {team.name} progress reset.', 'warning')
+        return redirect(url_for('admin.teams'))
+    elif action == 'delete':
+        team_name = team.name
+        Solve.query.filter_by(team_id=team.id).delete()
+        Submission.query.filter_by(team_id=team.id).delete()
+        TeamMember.query.filter_by(team_id=team.id).delete()
+        db.session.delete(team)
+        db.session.commit()
+        flush_cache()
+        flash(f'Team {team_name} permanently deleted.', 'warning')
         return redirect(url_for('admin.teams'))
 
     db.session.commit()
@@ -205,6 +268,15 @@ def challenge_new():
             connection_info = request.form.get('connection_info', '').strip() or None,
         )
         db.session.add(ch)
+        db.session.flush()
+
+        # Handle file uploads
+        files = request.files.getlist('challenge_files')
+        if files and any(f.filename for f in files):
+            saved = _save_challenge_files(ch.id, files)
+            if saved:
+                ch.files_json = json.dumps(saved)
+
         db.session.commit()
         flash(f'Challenge "{title}" created.', 'success')
         return redirect(url_for('admin.challenges'))
@@ -227,11 +299,43 @@ def challenge_edit(chal_id):
         ch.is_hidden    = 'is_hidden' in request.form
         ch.is_boss      = 'is_boss' in request.form
         ch.connection_info = request.form.get('connection_info', '').strip() or None
+
+        # Handle new file uploads (append to existing)
+        files = request.files.getlist('challenge_files')
+        if files and any(f.filename for f in files):
+            existing = _get_existing_files(ch.id)
+            new_files = _save_challenge_files(ch.id, files)
+            existing_names = {f['name'] for f in existing}
+            for nf in new_files:
+                if nf['name'] not in existing_names:
+                    existing.append(nf)
+            ch.files_json = json.dumps(existing) if existing else None
+
         db.session.commit()
         flash('Challenge updated.', 'success')
         return redirect(url_for('admin.challenges'))
 
     return render_template('admin/challenge_form.html', challenge=ch)
+
+
+@admin_bp.route('/challenges/<int:chal_id>/delete-file', methods=['POST'])
+def challenge_delete_file(chal_id):
+    ch = Challenge.query.get_or_404(chal_id)
+    filename = request.form.get('filename', '')
+    if filename and ch.files_json:
+        files = json.loads(ch.files_json)
+        files = [f for f in files if f['name'] != filename]
+        ch.files_json = json.dumps(files) if files else None
+        # Delete from disk
+        filepath = os.path.join(
+            current_app.root_path, 'static', 'uploads', 'challenges',
+            str(chal_id), secure_filename(filename)
+        )
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        db.session.commit()
+        flash(f'File "{filename}" deleted.', 'success')
+    return redirect(url_for('admin.challenge_edit', chal_id=chal_id))
 
 
 @admin_bp.route('/challenges/<int:chal_id>/toggle-hidden', methods=['POST'])

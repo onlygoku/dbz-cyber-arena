@@ -82,6 +82,15 @@
               <button type="submit" class="btn-ghost text-xs py-0.5 px-2">-Admin</button>
             </form>
             {% endif %}
+            {% if user.id != current_user.id %}
+            <form method="POST" action="{{ url_for('admin.user_action', user_id=user.id) }}" class="inline">
+              <input type="hidden" name="action" value="delete"/>
+              <button type="submit" class="btn-ghost text-xs py-0.5 px-2 text-red-500 border-red-900/40"
+                onclick="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
+                🗑 Delete
+              </button>
+            </form>
+            {% endif %}
           </div>
         </td>
       </tr>
