@@ -41,6 +41,7 @@ def create_app(config_object=None):
     from app.routes.scoreboard import scoreboard_bp
     from app.routes.admin import admin_bp
     from app.routes.api import api_bp
+    from app.routes.profile import profile_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(team_bp)
@@ -48,17 +49,34 @@ def create_app(config_object=None):
     app.register_blueprint(scoreboard_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(api_bp, url_prefix='/api')
+    app.register_blueprint(profile_bp)
 
     # Global template context
     @app.context_processor
     def inject_globals():
         from app.models.event import EventState
-        from app.services.hint_service import check_and_release_hints
         state = EventState.get()
         return {
             'g_state': state,
             'app_name': app.config.get('CTF_NAME', 'Dragon Ball Z Cyber Arena'),
         }
+
+    # Custom Jinja2 filters
+    import json as _json
+
+    @app.template_filter('fromjson')
+    def fromjson_filter(value):
+        try:
+            return _json.loads(value) if value else []
+        except Exception:
+            return []
+
+    @app.template_filter('from_json')
+    def from_json_filter(value):
+        try:
+            return _json.loads(value) if value else []
+        except Exception:
+            return []
 
     # Setup logging
     logging.basicConfig(level=logging.INFO)

@@ -1,0 +1,88 @@
+﻿{% extends "base.html" %}
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+  <h1 class="font-display text-2xl font-bold text-orange-400 uppercase tracking-widest">Edit Profile</h1>
+  <p class="text-gray-500 text-sm mt-1">Manage your account settings</p>
+</div>
+
+<div class="max-w-2xl space-y-6">
+
+  <div class="ctf-card p-6 flex items-center gap-6">
+    <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#f97316,#dc2626);display:flex;align-items:center;justify-content:center;font-family:Orbitron,sans-serif;font-size:2rem;font-weight:900;color:#fff;box-shadow:0 0 20px rgba(249,115,22,0.4);">
+      {{ current_user.username[0].upper() }}
+    </div>
+    <div>
+      <div class="font-display text-xl font-black text-white">{{ current_user.username }}</div>
+      <div class="font-mono text-sm text-gray-400 mt-1">{{ current_user.email }}</div>
+      <div class="flex gap-2 mt-2">
+        {% if current_user.is_admin %}
+        <span class="font-display text-xs text-purple-400 border border-purple-800/40 bg-purple-900/10 px-2 py-0.5 rounded">Admin</span>
+        {% endif %}
+        {% if current_user.team %}
+        <span class="font-display text-xs text-cyan-400 border border-cyan-800/40 bg-cyan-900/10 px-2 py-0.5 rounded">
+          {{ current_user.team.name }}{% if current_user.is_team_captain %} ★{% endif %}
+        </span>
+        {% endif %}
+        <span class="font-mono text-xs text-gray-600">Joined {{ current_user.created_at.strftime("%Y-%m-%d") }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ctf-card p-6">
+    <h2 class="font-display text-sm font-bold text-orange-400 uppercase tracking-widest mb-5">Account Info</h2>
+    <form method="POST" class="space-y-4">
+      <input type="hidden" name="action" value="update_info"/>
+      <div>
+        <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Username</label>
+        <input type="text" name="username" required class="ctf-input" value="{{ current_user.username }}" minlength="2" maxlength="64"/>
+      </div>
+      <div>
+        <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Email</label>
+        <input type="email" name="email" required class="ctf-input" value="{{ current_user.email }}"/>
+      </div>
+      <button type="submit" class="btn-primary py-2.5 px-8">Save Changes</button>
+    </form>
+  </div>
+
+  <div class="ctf-card p-6">
+    <h2 class="font-display text-sm font-bold text-purple-400 uppercase tracking-widest mb-5">Change Password</h2>
+    <form method="POST" class="space-y-4">
+      <input type="hidden" name="action" value="change_password"/>
+      <div>
+        <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Current Password</label>
+        <input type="password" name="current_password" required class="ctf-input" placeholder="••••••••"/>
+      </div>
+      <div>
+        <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">New Password</label>
+        <input type="password" name="new_password" required class="ctf-input" placeholder="Min 8 characters" minlength="8"/>
+      </div>
+      <div>
+        <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Confirm New Password</label>
+        <input type="password" name="confirm_password" required class="ctf-input" placeholder="Repeat new password"/>
+      </div>
+      <button type="submit" class="btn-secondary py-2.5 px-8">Change Password</button>
+    </form>
+  </div>
+
+  <div class="ctf-card p-6">
+    <h2 class="font-display text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Your Stats</h2>
+    <div class="grid grid-cols-3 gap-4">
+      <div class="bg-black/30 rounded p-3 text-center">
+        <div class="font-display text-2xl font-black text-orange-400">{{ current_user.team.score if current_user.team else 0 }}</div>
+        <div class="font-display text-xs text-gray-500 uppercase tracking-widest mt-1">Team Score</div>
+      </div>
+      <div class="bg-black/30 rounded p-3 text-center">
+        <div class="font-display text-2xl font-black text-cyan-400">{{ current_user.team.solves.count() if current_user.team else 0 }}</div>
+        <div class="font-display text-xs text-gray-500 uppercase tracking-widest mt-1">Solves</div>
+      </div>
+      <div class="bg-black/30 rounded p-3 text-center">
+        <div class="font-display text-2xl font-black text-purple-400">{{ current_user.team.member_count if current_user.team else 0 }}</div>
+        <div class="font-display text-xs text-gray-500 uppercase tracking-widest mt-1">Team Size</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

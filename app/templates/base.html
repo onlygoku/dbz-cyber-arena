@@ -272,6 +272,9 @@
         {% endif %}
         <div class="h-4 w-px bg-gray-700"></div>
         <span class="font-mono text-xs text-cyan-400">{{ current_user.username }}</span>
+        <a href="{{ url_for('profile.edit') }}" class="font-display text-xs uppercase tracking-widest text-gray-300 hover:text-orange-400 transition-colors">
+          Profile
+        </a>
         <a href="{{ url_for('auth.logout') }}" class="btn-secondary text-xs">Logout</a>
       {% else %}
         <a href="{{ url_for('auth.login') }}" class="btn-secondary">Login</a>
