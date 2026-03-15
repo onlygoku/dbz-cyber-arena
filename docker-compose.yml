@@ -1,0 +1,53 @@
+version: '3.9'
+
+services:
+
+  db:
+    image: postgres:16-alpine
+    container_name: ctf_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ctf
+      POSTGRES_PASSWORD: ctf
+      POSTGRES_DB: ctfdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ctf -d ctfdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ctf_web
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      FLASK_ENV: development
+      DATABASE_URL: postgresql://ctf:ctf@db:5432/ctfdb
+      SECRET_KEY: local-dev-secret-change-in-production
+      ADMIN_EMAIL: admin@ctf.local
+      ADMIN_PASSWORD: AdminPass123!
+      FLAG_PREFIX: THA
+      CTF_NAME: Dragon Ball Z Cyber Arena
+      MAIL_SUPPRESS_SEND: "true"
+      DYNAMIC_FLAG_SECRET: local-dynamic-secret
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - uploads_data:/app/app/static/uploads
+    command: >
+      sh -c "python run.py"
+
+volumes:
+  postgres_data:
+  uploads_data:

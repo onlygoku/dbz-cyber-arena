@@ -1,0 +1,25 @@
+{
+  "title": "Shenron Ultimate Wish",
+  "category": "pwn",
+  "difficulty": "extreme",
+  "points": 1000,
+  "is_dynamic": true,
+  "is_hidden": false,
+  "is_boss": true,
+  "connection_info": "nc pwn.dbzctf.local 1337",
+  "description": "The Eternal Dragon Shenron has been summoned. Only the most powerful hacker can exploit the Dragon Wish binary and claim ultimate power.\n\nExploit the buffer overflow in the wish-granting service to redirect execution to the `grant_wish` function and receive your unique flag.",
+  "hints": [
+    {
+      "content": "The binary was compiled without stack canaries or PIE. Classic ret2win.",
+      "cost": 0,
+      "auto_release_minutes": 90,
+      "is_visible": false
+    },
+    {
+      "content": "Offset to RIP is 72 bytes. Find the address of grant_wish() using objdump -d ./shenron.",
+      "cost": 0,
+      "auto_release_solves": 2,
+      "is_visible": false
+    }
+  ]
+}

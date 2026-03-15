@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Scoreboard{% endblock %}
+
+{% block extra_head %}
+<style>
+.rank-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+.rank-1  { background: linear-gradient(135deg,#fbbf24,#f59e0b); color:#000; box-shadow:0 0 16px rgba(251,191,36,0.5); }
+.rank-2  { background: linear-gradient(135deg,#d1d5db,#9ca3af); color:#000; }
+.rank-3  { background: linear-gradient(135deg,#f97316,#ea580c); color:#fff; }
+.rank-n  { background: #0f0f1a; border: 1px solid #1e1e3a; color: #6b7280; }
+.score-bar {
+  height: 3px;
+  background: linear-gradient(90deg, #f97316, #fbbf24);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+.team-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid #0f0f1a;
+  transition: background 0.15s;
+}
+.team-row:hover { background: rgba(249,115,22,0.03); }
+.team-row.my-team { background: rgba(249,115,22,0.06); border-left: 2px solid #f97316; }
+.feed-item {
+  background: #0f0f1a;
+  border: 1px solid #1e1e3a;
+  border-radius: 4px;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.8rem;
+  font-family: 'Share Tech Mono', monospace;
+  animation: feedIn 0.3s ease forwards;
+}
+@keyframes feedIn {
+  from { opacity:0; transform: translateX(10px); }
+  to   { opacity:1; transform: translateX(0); }
+}
+.freeze-banner {
+  background: linear-gradient(90deg, rgba(6,182,212,0.1), rgba(6,182,212,0.05));
+  border: 1px solid rgba(6,182,212,0.3);
+  border-radius: 4px;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="font-display text-2xl font-bold text-orange-400 uppercase tracking-widest">Scoreboard</h1>
+    <p class="text-gray-500 text-sm mt-1">Live rankings</p>
+  </div>
+  <div id="liveIndicator" class="flex items-center gap-2">
+    <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+    <span class="font-mono text-xs text-green-400">LIVE</span>
+  </div>
+</div>
+
+{% if frozen %}
+<div class="freeze-banner">
+  <span class="text-cyan-400 text-xl">❄</span>
+  <div>
+    <div class="font-display text-xs font-bold text-cyan-400 uppercase tracking-widest">Scoreboard Frozen</div>
+    <div class="font-mono text-xs text-gray-500">Rankings are frozen for the final hour. Final results will be revealed at end.</div>
+  </div>
+</div>
+{% endif %}
+
+<div class="grid lg:grid-cols-3 gap-6">
+
+  <!-- Main Scoreboard -->
+  <div class="lg:col-span-2">
+    <div class="ctf-card overflow-hidden">
+      <div id="scoreboardBody">
+        {% set max_score = board[0].score if board else 1 %}
+        {% for entry in board %}
+        {% set is_mine = current_user.is_authenticated and current_user.team and current_user.team.id == entry.team_id %}
+        <div class="team-row {% if is_mine %}my-team{% endif %}">
+          <div class="rank-badge {% if entry.rank == 1 %}rank-1{% elif entry.rank == 2 %}rank-2{% elif entry.rank == 3 %}rank-3{% else %}rank-n{% endif %}">
+            {{ entry.rank }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-body font-bold text-gray-100 truncate">{{ entry.team_name }}</span>
+              {% if is_mine %}<span class="text-xs font-mono text-orange-400">(you)</span>{% endif %}
+            </div>
+            <div class="score-bar" style="width: {{ (entry.score / (max_score or 1) * 100) | int }}%"></div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <div class="font-display font-black text-lg text-orange-400">{{ entry.score }}</div>
+            <div class="font-mono text-xs text-gray-600">pts</div>
+          </div>
+        </div>
+        {% else %}
+        <div class="text-center py-16 text-gray-600 font-mono">No teams yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Feed -->
+  <div>
+    <div class="ctf-card p-4">
+      <h3 class="font-display text-xs text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse"></span>
+        Live Solves
+      </h3>
+      <div id="liveFeed" class="space-y-2 max-h-96 overflow-y-auto">
+        {% for item in feed %}
+        <div class="feed-item">
+          <span class="text-orange-400 font-bold">{{ item.team_name }}</span>
+          <span class="text-gray-500"> solved </span>
+          <span class="text-cyan-300">{{ item.challenge_name }}</span>
+          <span class="text-green-400"> (+{{ item.points }})</span>
+          <div class="text-gray-700 text-xs mt-0.5">{{ item.solved_at }}</div>
+        </div>
+        {% else %}
+        <div class="text-center text-gray-600 font-mono text-xs py-4">No solves yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let lastFeedTs = '';
+
+async function refreshScoreboard() {
+  try {
+    const r = await fetch('/api/scoreboard');
+    const d = await r.json();
+    if (d.board && d.board.length) {
+      const maxScore = d.board[0].score || 1;
+      const myTeamId = {{ current_user.team.id if current_user.is_authenticated and current_user.team else 'null' }};
+      let html = '';
+      for (const entry of d.board) {
+        const isMe = entry.team_id === myTeamId;
+        const rankCls = entry.rank === 1 ? 'rank-1' : entry.rank === 2 ? 'rank-2' : entry.rank === 3 ? 'rank-3' : 'rank-n';
+        const barW = Math.round(entry.score / maxScore * 100);
+        html += `<div class="team-row ${isMe ? 'my-team' : ''}">
+          <div class="rank-badge ${rankCls}">${entry.rank}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-body font-bold text-gray-100 truncate">${entry.team_name}</span>
+              ${isMe ? '<span class="text-xs font-mono text-orange-400">(you)</span>' : ''}
+            </div>
+            <div class="score-bar" style="width:${barW}%"></div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <div class="font-display font-black text-lg text-orange-400">${entry.score}</div>
+            <div class="font-mono text-xs text-gray-600">pts</div>
+          </div>
+        </div>`;
+      }
+      document.getElementById('scoreboardBody').innerHTML = html;
+    }
+  } catch(e) {}
+}
+
+async function refreshFeed() {
+  try {
+    const r = await fetch('/api/feed');
+    const d = await r.json();
+    if (d.feed && d.feed.length) {
+      let html = '';
+      for (const item of d.feed) {
+        html += `<div class="feed-item">
+          <span class="text-orange-400 font-bold">${item.team_name}</span>
+          <span class="text-gray-500"> solved </span>
+          <span class="text-cyan-300">${item.challenge_name}</span>
+          <span class="text-green-400"> (+${item.points})</span>
+          <div class="text-gray-700 text-xs mt-0.5">${item.solved_at}</div>
+        </div>`;
+      }
+      document.getElementById('liveFeed').innerHTML = html;
+    }
+  } catch(e) {}
+}
+
+// Poll every 5 seconds
+setInterval(refreshScoreboard, 5000);
+setInterval(refreshFeed, 5000);
+</script>
+{% endblock %}

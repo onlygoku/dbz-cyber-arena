@@ -1,0 +1,113 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <h1 class="font-display text-xl font-bold text-orange-400 uppercase tracking-widest">Dashboard</h1>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+  {% for label, value, color in [
+    ('Users', stats.users, 'cyan'),
+    ('Teams', stats.teams, 'purple'),
+    ('Challenges', stats.challenges, 'orange'),
+    ('Solves', stats.solves, 'green'),
+    ('Submissions', stats.submissions, 'yellow'),
+    ('Correct', stats.flags, 'green'),
+    ('Pending Alerts', stats.security, 'red'),
+  ] %}
+  <div class="admin-card p-4">
+    <div class="font-display text-2xl font-black text-{{ color }}-400">{{ value }}</div>
+    <div class="font-display text-xs text-gray-500 uppercase tracking-widest mt-1">{{ label }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Event Control -->
+<div class="admin-card p-6 mb-6">
+  <h2 class="font-display text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Event Control</h2>
+  <div class="flex flex-wrap gap-3 mb-4">
+    <form method="POST" action="{{ url_for('admin.event_control') }}" class="inline">
+      <input type="hidden" name="action" value="{{ 'start' if not state.is_started else 'end' }}"/>
+      <button type="submit" class="btn-admin">
+        {{ '▶ Start Event' if not state.is_started else ('■ End Event' if not state.is_ended else '✓ Event Ended') }}
+      </button>
+    </form>
+    <form method="POST" action="{{ url_for('admin.event_control') }}" class="inline">
+      <input type="hidden" name="action" value="{{ 'unfreeze' if state.is_frozen else 'freeze' }}"/>
+      <button type="submit" class="btn-ghost">
+        {{ '❄ Unfreeze Board' if state.is_frozen else '❄ Freeze Board' }}
+      </button>
+    </form>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <!-- Flag prefix -->
+    <form method="POST" action="{{ url_for('admin.event_control') }}" class="flex gap-2 items-end">
+      <input type="hidden" name="action" value="update_prefix"/>
+      <div class="flex-1">
+        <label class="font-display text-xs text-gray-500 uppercase tracking-widest block mb-1">Flag Prefix</label>
+        <input type="text" name="flag_prefix" class="admin-input w-full" value="{{ state.flag_prefix }}" placeholder="THA"/>
+      </div>
+      <button type="submit" class="btn-admin">Update</button>
+    </form>
+
+    <!-- Announcement -->
+    <form method="POST" action="{{ url_for('admin.event_control') }}" class="flex gap-2 items-end">
+      <input type="hidden" name="action" value="announce"/>
+      <div class="flex-1">
+        <label class="font-display text-xs text-gray-500 uppercase tracking-widest block mb-1">Announcement</label>
+        <input type="text" name="announcement" class="admin-input w-full"
+          value="{{ state.announcement or '' }}" placeholder="Broadcast message to all players"/>
+      </div>
+      <button type="submit" class="btn-admin">Broadcast</button>
+    </form>
+  </div>
+
+  <div class="mt-4 flex flex-wrap gap-4 font-mono text-xs text-gray-500">
+    <span>Status: <span class="{% if state.is_ended %}text-red-400{% elif state.is_started %}text-green-400{% else %}text-yellow-400{% endif %}">
+      {{ 'ENDED' if state.is_ended else ('RUNNING' if state.is_started else 'NOT STARTED') }}
+    </span></span>
+    <span>Board: <span class="{{ 'text-cyan-400' if state.is_frozen else 'text-green-400' }}">{{ 'FROZEN' if state.is_frozen else 'LIVE' }}</span></span>
+    {% if state.start_time %}<span>Started: {{ state.start_time.strftime('%Y-%m-%d %H:%M UTC') }}</span>{% endif %}
+  </div>
+</div>
+
+<!-- Challenge Health -->
+<div class="admin-card overflow-hidden">
+  <div class="p-4 border-b border-gray-800">
+    <h2 class="font-display text-sm font-bold text-gray-400 uppercase tracking-widest">Challenge Health</h2>
+  </div>
+  <table class="ctf-table">
+    <thead>
+      <tr>
+        <th>Challenge</th>
+        <th>Attempts</th>
+        <th>Solves</th>
+        <th>Solve Rate</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for h in health %}
+      <tr>
+        <td class="font-body font-bold text-gray-200">{{ h.title }}</td>
+        <td class="font-mono text-gray-400">{{ h.attempts }}</td>
+        <td class="font-mono text-gray-400">{{ h.solves }}</td>
+        <td class="font-mono text-gray-400">{{ h.solve_rate }}%</td>
+        <td>
+          {% if h.warning %}
+          <span class="badge-red">⚠ No Solves</span>
+          {% elif h.solve_rate > 50 %}
+          <span class="badge-green">Healthy</span>
+          {% else %}
+          <span class="badge-yellow">Low</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

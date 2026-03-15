@@ -1,0 +1,84 @@
+{% extends "admin/base.html" %}
+{% block title %}Security Monitor{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <h1 class="font-display text-xl font-bold text-orange-400 uppercase tracking-widest">Security Monitor</h1>
+  <p class="font-mono text-xs text-gray-500 mt-1">Suspicious activity detection log</p>
+</div>
+
+<div class="admin-card overflow-x-auto">
+  <table class="ctf-table">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Type</th>
+        <th>Severity</th>
+        <th>Team</th>
+        <th>Challenge</th>
+        <th>Details</th>
+        <th>IP</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ev in events %}
+      <tr class="{% if not ev.is_reviewed and ev.severity in ['high','critical'] %}bg-red-900/5{% endif %}">
+        <td class="font-mono text-xs text-gray-500 whitespace-nowrap">{{ ev.created_at.strftime('%m-%d %H:%M:%S') }}</td>
+        <td class="font-mono text-xs">
+          {% if ev.event_type == 'excessive_submissions' %}
+          <span class="text-red-400">⚠ Excessive Subs</span>
+          {% elif ev.event_type == 'same_ip_teams' %}
+          <span class="text-yellow-400">🔗 Same IP Teams</span>
+          {% elif ev.event_type == 'fast_solve' %}
+          <span class="text-orange-400">⚡ Fast Solve</span>
+          {% elif ev.event_type == 'flag_share' %}
+          <span class="text-red-500">🚨 Flag Share</span>
+          {% else %}
+          <span class="text-gray-400">{{ ev.event_type }}</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if ev.severity == 'critical' %}<span class="badge-red">CRITICAL</span>
+          {% elif ev.severity == 'high' %}<span class="badge-red">HIGH</span>
+          {% elif ev.severity == 'medium' %}<span class="badge-yellow">MEDIUM</span>
+          {% else %}<span class="font-mono text-xs text-gray-600">LOW</span>{% endif %}
+        </td>
+        <td class="font-body text-sm text-gray-300">
+          {% if ev.team %}
+          <a href="{{ url_for('admin.teams') }}" class="text-cyan-400 hover:underline">{{ ev.team.name }}</a>
+          {% else %}—{% endif %}
+        </td>
+        <td class="font-body text-sm text-gray-400">
+          {{ ev.challenge.title if ev.challenge else '—' }}
+        </td>
+        <td class="font-mono text-xs text-gray-500 max-w-xs" style="word-break:break-word;">{{ ev.details or '—' }}</td>
+        <td class="font-mono text-xs text-gray-600">{{ ev.ip_address or '—' }}</td>
+        <td>
+          {% if ev.is_reviewed %}
+          <span class="badge-green">Reviewed</span>
+          {% else %}
+          <span class="badge-red">Pending</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if not ev.is_reviewed %}
+          <form method="POST" action="{{ url_for('admin.security_review', ev_id=ev.id) }}" class="inline">
+            <button type="submit" class="btn-ghost text-xs py-0.5 px-2">Mark OK</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="9" class="text-center py-12 text-gray-600 font-mono">
+          <div class="text-3xl mb-2">🛡</div>
+          No security events detected.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

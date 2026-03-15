@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — {% block title %}{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: {
+        fontFamily: {
+          display: ['Orbitron','sans-serif'],
+          body: ['Rajdhani','sans-serif'],
+          mono: ['Share Tech Mono','monospace'],
+        }
+      }}
+    }
+  </script>
+  <style>
+    body { background:#07070f; color:#e2e8f0; font-family:'Rajdhani',sans-serif; }
+    .admin-sidebar { background:#050508; border-right:1px solid #1e1e3a; min-height:100vh; width:220px; flex-shrink:0; }
+    .admin-nav-item { display:flex; align-items:center; gap:8px; padding:10px 16px; font-family:'Orbitron',sans-serif; font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#6b7280; transition:color 0.15s,background 0.15s; border-radius:2px; text-decoration:none; }
+    .admin-nav-item:hover,.admin-nav-item.active { color:#f97316; background:rgba(249,115,22,0.08); }
+    .admin-card { background:#0f0f1a; border:1px solid #1e1e3a; border-radius:4px; }
+    .admin-input { background:#050508; border:1px solid #1e1e3a; color:#e2e8f0; border-radius:2px; padding:0.5rem 0.75rem; font-family:'Share Tech Mono',monospace; font-size:0.85rem; }
+    .admin-input:focus { outline:none; border-color:#f97316; }
+    .btn-admin { background:linear-gradient(135deg,#f97316,#dc2626); color:#fff; font-family:'Orbitron',sans-serif; font-size:0.65rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; padding:0.5rem 1rem; border:none; border-radius:2px; cursor:pointer; }
+    .btn-admin:hover { opacity:0.9; }
+    .btn-ghost { background:transparent; border:1px solid #1e1e3a; color:#6b7280; font-family:'Orbitron',sans-serif; font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.45rem 0.9rem; border-radius:2px; cursor:pointer; }
+    .btn-ghost:hover { border-color:#f97316; color:#f97316; }
+    .ctf-table { width:100%; border-collapse:collapse; }
+    .ctf-table th { font-family:'Orbitron',sans-serif; font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:#6b7280; border-bottom:1px solid #1e1e3a; padding:0.6rem 0.75rem; text-align:left; }
+    .ctf-table td { padding:0.6rem 0.75rem; border-bottom:1px solid #0f0f1a; font-size:0.85rem; }
+    .ctf-table tr:hover td { background:rgba(249,115,22,0.03); }
+    .badge-green  { background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.3); padding:1px 8px; border-radius:2px; font-size:0.7rem; font-family:'Share Tech Mono',monospace; }
+    .badge-red    { background:rgba(239,68,68,0.12);  color:#f87171; border:1px solid rgba(239,68,68,0.3);  padding:1px 8px; border-radius:2px; font-size:0.7rem; font-family:'Share Tech Mono',monospace; }
+    .badge-yellow { background:rgba(251,191,36,0.12); color:#fcd34d; border:1px solid rgba(251,191,36,0.3); padding:1px 8px; border-radius:2px; font-size:0.7rem; font-family:'Share Tech Mono',monospace; }
+    .flash-success { background:rgba(34,197,94,0.12); border:1px solid #22c55e; color:#4ade80; }
+    .flash-error   { background:rgba(239,68,68,0.12);  border:1px solid #ef4444; color:#f87171; }
+    .flash-warning { background:rgba(251,191,36,0.12); border:1px solid #fbbf24; color:#fcd34d; }
+    .flash-info    { background:rgba(6,182,212,0.12);  border:1px solid #06b6d4; color:#67e8f9; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+<div class="flex">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar p-4">
+    <div class="mb-6 px-2">
+      <div class="font-display text-xs text-orange-400 uppercase tracking-widest">DBZ Cyber Arena</div>
+      <div class="font-display text-xs text-gray-600 tracking-widest">Admin Panel</div>
+    </div>
+
+    <nav class="space-y-1">
+      <a href="{{ url_for('admin.dashboard') }}"    class="admin-nav-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">📊 Dashboard</a>
+      <a href="{{ url_for('admin.challenges') }}"   class="admin-nav-item {% if 'challenge' in request.endpoint %}active{% endif %}">🎯 Challenges</a>
+      <a href="{{ url_for('admin.users') }}"        class="admin-nav-item {% if request.endpoint == 'admin.users' %}active{% endif %}">👤 Users</a>
+      <a href="{{ url_for('admin.teams') }}"        class="admin-nav-item {% if request.endpoint == 'admin.teams' %}active{% endif %}">👥 Teams</a>
+      <a href="{{ url_for('admin.submissions') }}"  class="admin-nav-item {% if request.endpoint == 'admin.submissions' %}active{% endif %}">📝 Submissions</a>
+      <a href="{{ url_for('admin.security') }}"     class="admin-nav-item {% if request.endpoint == 'admin.security' %}active{% endif %}">🛡 Security</a>
+      <a href="{{ url_for('admin.settings') }}"     class="admin-nav-item {% if request.endpoint == 'admin.settings' %}active{% endif %}">⚙ Settings</a>
+      <div class="border-t border-gray-800 my-3"></div>
+      <a href="{{ url_for('challenges.list') }}"    class="admin-nav-item">← Back to Site</a>
+    </nav>
+  </aside>
+
+  <!-- Content -->
+  <div class="flex-1 p-8 min-w-0">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for category, message in messages %}
+      <div class="flash-{{ category }} rounded px-4 py-2 text-sm font-mono">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+</div>
+{% block scripts %}{% endblock %}
+</body>
+</html>

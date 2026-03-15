@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-8">
+      <div class="text-5xl mb-3">🐉</div>
+      <h1 class="font-display text-2xl font-bold text-orange-400 uppercase tracking-widest">Register</h1>
+      <p class="text-gray-500 text-sm mt-1">Join the Dragon Ball Z Cyber Arena</p>
+    </div>
+
+    <div class="ctf-card p-8">
+      <form method="POST" class="space-y-5">
+        <div>
+          <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Username</label>
+          <input type="text" name="username" required minlength="2" maxlength="64"
+            class="ctf-input" placeholder="SuperSaiyanHacker"/>
+        </div>
+        <div>
+          <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Email</label>
+          <input type="email" name="email" required
+            class="ctf-input" placeholder="you@capsulecorp.net"/>
+        </div>
+        <div>
+          <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Password</label>
+          <input type="password" name="password" required minlength="8"
+            class="ctf-input" placeholder="Min 8 characters"/>
+        </div>
+        <div>
+          <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Confirm Password</label>
+          <input type="password" name="confirm_password" required
+            class="ctf-input" placeholder="Repeat password"/>
+        </div>
+        <button type="submit" class="btn-primary w-full py-3 text-center block mt-2">
+          Create Account →
+        </button>
+      </form>
+      <div class="mt-6 text-center text-sm text-gray-500">
+        Already registered?
+        <a href="{{ url_for('auth.login') }}" class="text-orange-400 hover:underline">Login here</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

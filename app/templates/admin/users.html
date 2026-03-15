@@ -1,0 +1,94 @@
+{% extends "admin/base.html" %}
+{% block title %}Users{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="font-display text-xl font-bold text-orange-400 uppercase tracking-widest">Users</h1>
+  <form method="GET" class="flex gap-2">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search username / email…"
+      class="admin-input text-sm" style="width:220px"/>
+    <button type="submit" class="btn-ghost">Search</button>
+  </form>
+</div>
+
+<div class="admin-card overflow-x-auto">
+  <table class="ctf-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Team</th>
+        <th>Verified</th>
+        <th>Admin</th>
+        <th>Banned</th>
+        <th>Joined</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td class="font-mono text-gray-600 text-xs">{{ user.id }}</td>
+        <td class="font-body font-bold text-gray-200">{{ user.username }}</td>
+        <td class="font-mono text-xs text-gray-400">{{ user.email }}</td>
+        <td class="font-mono text-xs text-gray-400">
+          {% if user.team %}
+            <a href="{{ url_for('admin.teams') }}" class="text-cyan-400 hover:underline">{{ user.team.name }}</a>
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          {% if user.is_verified %}<span class="badge-green">Yes</span>
+          {% else %}<span class="badge-red">No</span>{% endif %}
+        </td>
+        <td>
+          {% if user.is_admin %}<span class="badge-yellow">Admin</span>
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          {% if user.is_banned %}<span class="badge-red">Banned</span>
+          {% else %}—{% endif %}
+        </td>
+        <td class="font-mono text-xs text-gray-600">{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+        <td>
+          <div class="flex gap-1 flex-wrap">
+            {% if not user.is_verified %}
+            <form method="POST" action="{{ url_for('admin.user_action', user_id=user.id) }}" class="inline">
+              <input type="hidden" name="action" value="verify"/>
+              <button type="submit" class="btn-ghost text-xs py-0.5 px-2">Verify</button>
+            </form>
+            {% endif %}
+            {% if user.is_banned %}
+            <form method="POST" action="{{ url_for('admin.user_action', user_id=user.id) }}" class="inline">
+              <input type="hidden" name="action" value="unban"/>
+              <button type="submit" class="btn-ghost text-xs py-0.5 px-2">Unban</button>
+            </form>
+            {% elif not user.is_admin %}
+            <form method="POST" action="{{ url_for('admin.user_action', user_id=user.id) }}" class="inline">
+              <input type="hidden" name="action" value="ban"/>
+              <button type="submit" class="btn-ghost text-xs py-0.5 px-2 text-red-400 border-red-900/40"
+                onclick="return confirm('Ban {{ user.username }}?')">Ban</button>
+            </form>
+            {% endif %}
+            {% if not user.is_admin and not user.is_banned %}
+            <form method="POST" action="{{ url_for('admin.user_action', user_id=user.id) }}" class="inline">
+              <input type="hidden" name="action" value="make_admin"/>
+              <button type="submit" class="btn-ghost text-xs py-0.5 px-2"
+                onclick="return confirm('Make {{ user.username }} admin?')">+Admin</button>
+            </form>
+            {% elif user.is_admin and user.id != current_user.id %}
+            <form method="POST" action="{{ url_for('admin.user_action', user_id=user.id) }}" class="inline">
+              <input type="hidden" name="action" value="remove_admin"/>
+              <button type="submit" class="btn-ghost text-xs py-0.5 px-2">-Admin</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" class="text-center py-8 text-gray-600 font-mono">No users found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

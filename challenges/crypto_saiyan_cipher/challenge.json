@@ -1,0 +1,24 @@
+{
+  "title": "Saiyan Cipher Scroll",
+  "category": "crypto",
+  "difficulty": "medium",
+  "points": 300,
+  "is_dynamic": false,
+  "is_hidden": false,
+  "is_boss": false,
+  "description": "Vegeta encoded a secret battle plan using a classic cipher. Decode it to reveal the flag.",
+  "hints": [
+    {
+      "content": "The Prince of all Saiyans prefers his ciphers like his battles — classical and straightforward.",
+      "cost": 0,
+      "auto_release_minutes": 60,
+      "is_visible": false
+    },
+    {
+      "content": "ROT13 is too weak for a Super Saiyan. Try a Vigenere cipher with a key related to Saiyan royalty.",
+      "cost": 0,
+      "auto_release_solves": 5,
+      "is_visible": false
+    }
+  ]
+}

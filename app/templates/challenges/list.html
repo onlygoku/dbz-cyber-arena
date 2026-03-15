@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Challenges{% endblock %}
+
+{% block extra_head %}
+<style>
+.chal-card {
+  background: #0f0f1a;
+  border: 1px solid #1e1e3a;
+  border-radius: 4px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  position: relative;
+  overflow: hidden;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+.chal-card:hover {
+  border-color: #f97316;
+  box-shadow: 0 0 16px rgba(249,115,22,0.2);
+  transform: translateY(-2px);
+}
+.chal-card.solved {
+  border-color: rgba(34,197,94,0.3);
+  opacity: 0.75;
+}
+.chal-card.solved::after {
+  content: '✓';
+  position: absolute;
+  top: 10px; right: 12px;
+  font-size: 1rem;
+  color: #4ade80;
+}
+.chal-card.boss-card {
+  border-color: rgba(251,191,36,0.4);
+  background: linear-gradient(135deg, #0f0f1a, #1a1200);
+  box-shadow: 0 0 20px rgba(251,191,36,0.1);
+}
+.chal-card.boss-card:hover {
+  border-color: #fbbf24;
+  box-shadow: 0 0 30px rgba(251,191,36,0.3);
+}
+.points-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+.cat-header {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #6b7280;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #1e1e3a;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filter-btn {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 2px;
+  border: 1px solid #1e1e3a;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-btn.active, .filter-btn:hover {
+  border-color: #f97316;
+  color: #f97316;
+  background: rgba(249,115,22,0.08);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-8">
+  <div>
+    <h1 class="font-display text-2xl font-bold text-orange-400 uppercase tracking-widest">Challenges</h1>
+    <p class="text-gray-500 text-sm mt-1">
+      {{ solved_ids|length }} solved / {{ categories.values() | map('list') | map('length') | sum }} total
+    </p>
+  </div>
+  <div class="flex gap-2 flex-wrap" id="categoryFilters">
+    <button class="filter-btn active" data-cat="all">All</button>
+    {% for cat in categories.keys() %}
+    <button class="filter-btn" data-cat="{{ cat }}">{{ cat }}</button>
+    {% endfor %}
+  </div>
+</div>
+
+{% for cat, chals in categories.items() %}
+<div class="mb-10 category-section" data-cat="{{ cat }}">
+  <div class="cat-header">
+    <span>{{ chals[0].category | replace('web','🌐') | replace('crypto','🔐') | replace('pwn','💥') | replace('rev','🔄') | replace('forensics','🔍') | replace('osint','👁') | replace('misc','🐉') | replace('network','📡') }}</span>
+    <span>{{ cat }}</span>
+    <span class="ml-auto text-xs">
+      {{ chals | selectattr('id', 'in', solved_ids) | list | length }}/{{ chals | length }} solved
+    </span>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    {% for ch in chals %}
+    <a href="{{ url_for('challenges.detail', slug=ch.slug) }}"
+       class="chal-card {% if ch.id in solved_ids %}solved{% endif %} {% if ch.is_boss %}boss-card{% endif %}">
+
+      {% if ch.is_boss %}
+      <div class="font-display text-xs text-yellow-400 uppercase tracking-widest mb-2">⭐ Boss Challenge</div>
+      {% endif %}
+
+      <div class="flex items-start justify-between mb-2">
+        <div class="points-badge {% if ch.is_boss %}text-yellow-400{% elif ch.difficulty == 'extreme' %}text-red-400{% elif ch.difficulty == 'hard' %}text-orange-400{% elif ch.difficulty == 'medium' %}text-yellow-300{% else %}text-green-400{% endif %}">
+          {{ ch.points }}
+        </div>
+        <span class="diff-{{ ch.difficulty }} text-xs px-2 py-0.5 rounded font-mono">{{ ch.difficulty }}</span>
+      </div>
+
+      <div class="font-body font-bold text-gray-100 text-base leading-tight mb-2">{{ ch.title }}</div>
+
+      <div class="flex items-center justify-between mt-3">
+        <span class="cat-badge">{{ ch.category }}</span>
+        <span class="font-mono text-xs text-gray-600">
+          {{ ch.solve_count }} solve{{ 's' if ch.solve_count != 1 }}
+        </span>
+      </div>
+
+      {% if ch.first_blood %}
+      <div class="font-mono text-xs text-red-500 mt-1">🩸 {{ ch.first_blood.team.name }}</div>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% else %}
+<div class="text-center py-24">
+  <div class="text-5xl mb-4">🔒</div>
+  <div class="font-display text-xl text-gray-500">No challenges available yet</div>
+  <div class="text-sm text-gray-600 mt-2">Check back when the event starts</div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const cat = btn.dataset.cat;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.querySelectorAll('.category-section').forEach(sec => {
+      if (cat === 'all' || sec.dataset.cat === cat) {
+        sec.style.display = '';
+      } else {
+        sec.style.display = 'none';
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

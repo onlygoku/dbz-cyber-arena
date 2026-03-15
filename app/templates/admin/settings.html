@@ -1,0 +1,100 @@
+{% extends "admin/base.html" %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <h1 class="font-display text-xl font-bold text-orange-400 uppercase tracking-widest">Settings</h1>
+  <p class="font-mono text-xs text-gray-500 mt-1">Event configuration &amp; controls</p>
+</div>
+
+<div class="grid md:grid-cols-2 gap-6 max-w-3xl">
+
+  <!-- Event State -->
+  <div class="admin-card p-6">
+    <h2 class="font-display text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Event State</h2>
+    <dl class="space-y-3 font-mono text-sm">
+      <div class="flex justify-between">
+        <dt class="text-gray-500">Status</dt>
+        <dd class="{% if state.is_ended %}text-red-400{% elif state.is_started %}text-green-400{% else %}text-yellow-400{% endif %}">
+          {{ 'ENDED' if state.is_ended else ('RUNNING' if state.is_started else 'NOT STARTED') }}
+        </dd>
+      </div>
+      <div class="flex justify-between">
+        <dt class="text-gray-500">Board</dt>
+        <dd class="{{ 'text-cyan-400' if state.is_frozen else 'text-green-400' }}">
+          {{ 'FROZEN' if state.is_frozen else 'LIVE' }}
+        </dd>
+      </div>
+      <div class="flex justify-between">
+        <dt class="text-gray-500">Flag Prefix</dt>
+        <dd class="text-orange-400">{{ state.flag_prefix or 'THA' }}</dd>
+      </div>
+      {% if state.start_time %}
+      <div class="flex justify-between">
+        <dt class="text-gray-500">Started</dt>
+        <dd class="text-gray-300">{{ state.start_time.strftime('%Y-%m-%d %H:%M UTC') }}</dd>
+      </div>
+      {% endif %}
+      {% if state.end_time %}
+      <div class="flex justify-between">
+        <dt class="text-gray-500">Ended</dt>
+        <dd class="text-gray-300">{{ state.end_time.strftime('%Y-%m-%d %H:%M UTC') }}</dd>
+      </div>
+      {% endif %}
+      {% if state.announcement %}
+      <div>
+        <dt class="text-gray-500 mb-1">Announcement</dt>
+        <dd class="text-yellow-300 text-xs border border-yellow-900/30 bg-yellow-900/10 rounded p-2">{{ state.announcement }}</dd>
+      </div>
+      {% endif %}
+    </dl>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="admin-card p-6">
+    <h2 class="font-display text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Quick Actions</h2>
+    <div class="space-y-3">
+      <form method="POST" action="{{ url_for('admin.event_control') }}" class="flex gap-2">
+        <input type="hidden" name="action" value="{{ 'start' if not state.is_started else 'end' }}"/>
+        <button type="submit" class="btn-admin w-full py-2">
+          {{ '▶ Start Event' if not state.is_started else ('■ End Event' if not state.is_ended else '✓ Ended') }}
+        </button>
+      </form>
+
+      <form method="POST" action="{{ url_for('admin.event_control') }}" class="flex gap-2">
+        <input type="hidden" name="action" value="{{ 'unfreeze' if state.is_frozen else 'freeze' }}"/>
+        <button type="submit" class="btn-ghost w-full py-2">
+          {{ '❄ Unfreeze Scoreboard' if state.is_frozen else '❄ Freeze Scoreboard' }}
+        </button>
+      </form>
+
+      <form method="POST" action="{{ url_for('admin.event_control') }}" class="flex gap-2 items-end">
+        <div class="flex-1">
+          <input type="hidden" name="action" value="update_prefix"/>
+          <label class="font-display text-xs text-gray-500 uppercase tracking-widest block mb-1">Flag Prefix</label>
+          <input type="text" name="flag_prefix" class="admin-input w-full" value="{{ state.flag_prefix or 'THA' }}" maxlength="16"/>
+        </div>
+        <button type="submit" class="btn-admin py-2 px-4">Set</button>
+      </form>
+
+      <form method="POST" action="{{ url_for('admin.event_control') }}" class="space-y-2">
+        <input type="hidden" name="action" value="announce"/>
+        <label class="font-display text-xs text-gray-500 uppercase tracking-widest block">Broadcast Message</label>
+        <div class="flex gap-2">
+          <input type="text" name="announcement" class="admin-input flex-1"
+            value="{{ state.announcement or '' }}" placeholder="Announcement text…"/>
+          <button type="submit" class="btn-admin py-2 px-4">Send</button>
+        </div>
+        {% if state.announcement %}
+        <form method="POST" action="{{ url_for('admin.event_control') }}">
+          <input type="hidden" name="action" value="announce"/>
+          <input type="hidden" name="announcement" value=""/>
+          <button type="submit" class="btn-ghost w-full text-xs py-1">✕ Clear Announcement</button>
+        </form>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

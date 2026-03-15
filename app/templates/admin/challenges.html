@@ -1,0 +1,79 @@
+{% extends "admin/base.html" %}
+{% block title %}Challenges{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="font-display text-xl font-bold text-orange-400 uppercase tracking-widest">Challenges</h1>
+  <div class="flex gap-3">
+    <!-- ZIP import -->
+    <form method="POST" action="{{ url_for('admin.challenge_import') }}" enctype="multipart/form-data" class="flex gap-2">
+      <input type="file" name="zip_file" accept=".zip" class="admin-input text-xs py-1.5" required/>
+      <button type="submit" class="btn-ghost">Import ZIP</button>
+    </form>
+    <a href="{{ url_for('admin.challenge_new') }}" class="btn-admin">+ New Challenge</a>
+  </div>
+</div>
+
+<div class="admin-card overflow-hidden">
+  <table class="ctf-table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Points</th>
+        <th>Difficulty</th>
+        <th>Solves</th>
+        <th>Attempts</th>
+        <th>Rate</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ch in challenges %}
+      <tr>
+        <td class="font-body font-bold text-gray-200">
+          {{ ch.title }}
+          {% if ch.is_boss %}<span class="text-yellow-400 text-xs ml-1">⭐</span>{% endif %}
+          {% if ch.is_dynamic %}<span class="text-purple-400 text-xs ml-1">⚡</span>{% endif %}
+        </td>
+        <td class="font-mono text-xs text-gray-400">{{ ch.category }}</td>
+        <td class="font-mono text-orange-400 font-bold">{{ ch.points }}</td>
+        <td><span class="diff-{{ ch.difficulty }} text-xs px-2 py-0.5 rounded font-mono">{{ ch.difficulty }}</span></td>
+        <td class="font-mono text-green-400">{{ ch.solve_count }}</td>
+        <td class="font-mono text-gray-400">{{ ch.attempt_count }}</td>
+        <td class="font-mono text-gray-400">{{ ch.solve_rate }}%</td>
+        <td>
+          {% if ch.is_hidden %}
+          <span class="badge-yellow">Hidden</span>
+          {% else %}
+          <span class="badge-green">Visible</span>
+          {% endif %}
+        </td>
+        <td class="flex gap-2">
+          <a href="{{ url_for('admin.challenge_edit', chal_id=ch.id) }}" class="btn-ghost text-xs py-1 px-2">Edit</a>
+          <form method="POST" action="{{ url_for('admin.challenge_toggle_hidden', chal_id=ch.id) }}" class="inline">
+            <button type="submit" class="btn-ghost text-xs py-1 px-2">
+              {{ 'Show' if ch.is_hidden else 'Hide' }}
+            </button>
+          </form>
+          <form method="POST" action="{{ url_for('admin.challenge_delete', chal_id=ch.id) }}" class="inline"
+            onsubmit="return confirm('Delete {{ ch.title }}?')">
+            <button type="submit" class="btn-ghost text-xs py-1 px-2 text-red-500 border-red-900/40">Del</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" class="text-center text-gray-600 py-8 font-mono">No challenges yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<style>
+.diff-easy    { background:rgba(34,197,94,0.15);  color:#4ade80; border:1px solid rgba(34,197,94,0.4); }
+.diff-medium  { background:rgba(251,191,36,0.15); color:#fcd34d; border:1px solid rgba(251,191,36,0.4); }
+.diff-hard    { background:rgba(249,115,22,0.15); color:#fb923c; border:1px solid rgba(249,115,22,0.4); }
+.diff-extreme { background:rgba(239,68,68,0.15);  color:#f87171; border:1px solid rgba(239,68,68,0.4); }
+</style>
+{% endblock %}

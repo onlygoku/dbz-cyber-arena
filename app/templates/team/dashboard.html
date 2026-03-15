@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% block title %}Team{% endblock %}
+
+{% block extra_head %}
+<style>
+  .radar-ring {
+    fill: none;
+    stroke: rgba(249,115,22,0.15);
+    stroke-width: 1;
+  }
+  .radar-spoke {
+    stroke: rgba(249,115,22,0.1);
+    stroke-width: 1;
+  }
+  .radar-fill {
+    fill: rgba(249,115,22,0.15);
+    stroke: #f97316;
+    stroke-width: 1.5;
+  }
+  .radar-dot {
+    fill: #f97316;
+  }
+  .member-card {
+    background: #050508;
+    border: 1px solid #1e1e3a;
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .captain-badge {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    background: rgba(251,191,36,0.15);
+    border: 1px solid rgba(251,191,36,0.4);
+    color: #fbbf24;
+    border-radius: 2px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+  <h1 class="font-display text-2xl font-bold text-orange-400 uppercase tracking-widest">Team HQ</h1>
+  <p class="text-gray-500 text-sm mt-1">Command your squad</p>
+</div>
+
+{% if not team %}
+<!-- No team -->
+<div class="ctf-card p-12 text-center max-w-lg mx-auto">
+  <div class="text-5xl mb-4">👥</div>
+  <h2 class="font-display text-xl text-gray-300 mb-4">You're not in a team yet</h2>
+  <p class="text-gray-500 mb-8">Create your own team or join one with an invite code.</p>
+  <div class="flex gap-4 justify-center">
+    <a href="{{ url_for('team.create') }}" class="btn-primary">Create Team</a>
+    <a href="{{ url_for('team.join') }}" class="btn-secondary">Join Team</a>
+  </div>
+</div>
+
+{% else %}
+<div class="grid lg:grid-cols-3 gap-6">
+
+  <!-- Left: Team Info + Members -->
+  <div class="lg:col-span-2 space-y-6">
+
+    <!-- Team Info -->
+    <div class="ctf-card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <div class="font-display text-2xl font-black text-white">{{ team.name }}</div>
+          {% if team.is_banned %}
+          <span class="text-xs font-mono text-red-400 bg-red-900/20 border border-red-800/40 px-2 py-0.5 rounded">BANNED</span>
+          {% elif team.is_paused %}
+          <span class="text-xs font-mono text-yellow-400 bg-yellow-900/20 border border-yellow-800/40 px-2 py-0.5 rounded">PAUSED</span>
+          {% endif %}
+        </div>
+        <div class="text-right">
+          <div class="font-display text-3xl font-black text-orange-400">{{ team.score }}</div>
+          <div class="font-display text-xs text-gray-500 uppercase tracking-widest">Points</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="bg-black/30 rounded p-3">
+          <div class="font-display text-xs text-gray-500 uppercase tracking-widest mb-1">Challenges Solved</div>
+          <div class="font-mono text-2xl text-cyan-400">{{ solved }}<span class="text-gray-600 text-base">/{{ total }}</span></div>
+        </div>
+        <div class="bg-black/30 rounded p-3">
+          <div class="font-display text-xs text-gray-500 uppercase tracking-widest mb-1">Members</div>
+          <div class="font-mono text-2xl text-purple-400">{{ team.member_count }}<span class="text-gray-600 text-base">/3</span></div>
+        </div>
+      </div>
+
+      {% if current_user.is_team_captain %}
+      <div class="border-t border-gray-800 pt-4">
+        <div class="font-display text-xs text-gray-500 uppercase tracking-widest mb-2">Invite Code</div>
+        <div class="flex items-center gap-3">
+          <code class="font-mono text-yellow-400 bg-black/50 px-3 py-2 rounded border border-gray-800 flex-1 text-center tracking-widest" id="inviteCode">
+            {{ team.invite_code }}
+          </code>
+          <button onclick="copyInvite()" class="btn-secondary text-xs py-2">Copy</button>
+          <form method="POST" action="{{ url_for('team.regenerate_invite') }}" class="inline">
+            <button type="submit" class="btn-secondary text-xs py-2" onclick="return confirm('Regenerate invite code?')">
+              Regenerate
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Members -->
+    <div class="ctf-card p-6">
+      <h3 class="font-display text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Members</h3>
+      <div class="space-y-3">
+        {% for member in team.active_members %}
+        <div class="member-card">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-orange-900/30 border border-orange-800/40 flex items-center justify-center font-display text-xs text-orange-400">
+              {{ member.user.username[0].upper() }}
+            </div>
+            <div>
+              <div class="font-body font-bold text-gray-200">{{ member.user.username }}</div>
+              <div class="font-mono text-xs text-gray-600">Joined {{ member.joined_at.strftime('%Y-%m-%d') }}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            {% if member.is_captain %}
+            <span class="captain-badge">Captain</span>
+            {% endif %}
+            {% if current_user.is_team_captain and member.user_id != current_user.id %}
+            <form method="POST" action="{{ url_for('team.remove_member', user_id=member.user_id) }}" class="inline">
+              <button type="submit" class="text-xs text-red-500 hover:text-red-400 font-mono" onclick="return confirm('Remove member?')">Remove</button>
+            </form>
+            {% endif %}
+            {% if member.user_id == current_user.id and not member.is_captain %}
+            <form method="POST" action="{{ url_for('team.leave') }}" class="inline">
+              <button type="submit" class="text-xs text-gray-500 hover:text-red-400 font-mono">Leave</button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if team.member_count < 3 %}
+      <div class="mt-4 text-sm text-gray-600 font-mono text-center">
+        {{ 3 - team.member_count }} slot(s) open — share your invite code
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Right: Dragon Radar -->
+  <div class="space-y-6">
+    <div class="ctf-card p-6">
+      <h3 class="font-display text-sm font-bold text-orange-400 uppercase tracking-widest mb-4 text-center">
+        Dragon Radar
+      </h3>
+      <div class="flex justify-center">
+        <svg id="radarChart" viewBox="0 0 200 200" width="200" height="200">
+          <!-- Background rings -->
+          <circle cx="100" cy="100" r="80"  class="radar-ring"/>
+          <circle cx="100" cy="100" r="60"  class="radar-ring"/>
+          <circle cx="100" cy="100" r="40"  class="radar-ring"/>
+          <circle cx="100" cy="100" r="20"  class="radar-ring"/>
+          <!-- Center dot -->
+          <circle cx="100" cy="100" r="3" fill="rgba(249,115,22,0.4)"/>
+          <!-- Axes will be drawn by JS -->
+          <g id="radarAxes"></g>
+          <!-- Data polygon -->
+          <polygon id="radarPolygon" class="radar-fill" points="100,100"/>
+          <!-- Labels will be drawn by JS -->
+          <g id="radarLabels"></g>
+        </svg>
+      </div>
+
+      <!-- Category legend -->
+      <div class="mt-4 space-y-2">
+        {% for cat, stats in categories.items() %}
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-mono text-gray-400">{{ cat }}</span>
+          <div class="flex items-center gap-2">
+            <div class="w-20 bg-gray-800 rounded-full h-1.5">
+              <div class="bg-orange-500 h-1.5 rounded-full" style="width: {{ (stats.solved / stats.total * 100) | int if stats.total > 0 else 0 }}%"></div>
+            </div>
+            <span class="font-mono text-gray-500">{{ stats.solved }}/{{ stats.total }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if current_user.is_team_captain %}
+    <div class="ctf-card p-4">
+      <h3 class="font-display text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Danger Zone</h3>
+      <form method="POST" action="{{ url_for('team.leave') }}">
+        <button type="submit" class="w-full text-red-500 border border-red-900/40 bg-red-900/10 hover:bg-red-900/20 font-display text-xs uppercase tracking-widest py-2 rounded transition"
+          onclick="return confirm('Leave team? This action cannot be undone.')">
+          Leave Team
+        </button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% if team and categories %}
+const categoryData = {{ categories | tojson }};
+const cats = Object.keys(categoryData);
+const n = cats.length;
+const cx = 100, cy = 100, maxR = 80;
+
+const axesEl  = document.getElementById('radarAxes');
+const labelsEl = document.getElementById('radarLabels');
+const polyEl  = document.getElementById('radarPolygon');
+
+const points = [];
+cats.forEach((cat, i) => {
+  const angle = (Math.PI * 2 / n) * i - Math.PI / 2;
+  const stats = categoryData[cat];
+  const ratio = stats.total > 0 ? stats.solved / stats.total : 0;
+  const r = maxR * ratio;
+
+  // Spoke
+  const x2 = cx + maxR * Math.cos(angle);
+  const y2 = cy + maxR * Math.sin(angle);
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+  line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+  line.setAttribute('class', 'radar-spoke');
+  axesEl.appendChild(line);
+
+  // Label
+  const lx = cx + (maxR + 12) * Math.cos(angle);
+  const ly = cy + (maxR + 12) * Math.sin(angle);
+  const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  txt.setAttribute('x', lx); txt.setAttribute('y', ly);
+  txt.setAttribute('text-anchor', 'middle');
+  txt.setAttribute('dominant-baseline', 'middle');
+  txt.setAttribute('font-size', '7');
+  txt.setAttribute('font-family', 'Orbitron, sans-serif');
+  txt.setAttribute('fill', '#6b7280');
+  txt.textContent = cat.substring(0, 4).toUpperCase();
+  labelsEl.appendChild(txt);
+
+  // Data point
+  const px = cx + r * Math.cos(angle);
+  const py = cy + r * Math.sin(angle);
+  points.push([px, py]);
+
+  // Dot
+  const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  dot.setAttribute('cx', px); dot.setAttribute('cy', py);
+  dot.setAttribute('r', ratio > 0 ? 3 : 1);
+  dot.setAttribute('class', 'radar-dot');
+  axesEl.appendChild(dot);
+});
+
+polyEl.setAttribute('points', points.map(p => p.join(',')).join(' '));
+{% endif %}
+
+function copyInvite() {
+  const code = document.getElementById('inviteCode').textContent.trim();
+  navigator.clipboard.writeText(code).then(() => {
+    alert('Invite code copied: ' + code);
+  });
+}
+</script>
+{% endblock %}

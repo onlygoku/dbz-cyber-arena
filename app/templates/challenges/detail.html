@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}{{ challenge.title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.challenge-header {
+  background: linear-gradient(135deg, rgba(15,15,26,0.95), rgba(10,10,15,0.95));
+  border: 1px solid #1e1e3a;
+  border-radius: 4px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.challenge-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: {% if challenge.is_boss %}linear-gradient(90deg, transparent, #fbbf24, transparent){% else %}linear-gradient(90deg, transparent, #f97316, transparent){% endif %};
+}
+.desc-body {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #d1d5db;
+}
+.desc-body code {
+  font-family: 'Share Tech Mono', monospace;
+  background: rgba(249,115,22,0.08);
+  border: 1px solid rgba(249,115,22,0.2);
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: #f97316;
+  font-size: 0.9em;
+}
+.desc-body pre {
+  background: #050508;
+  border: 1px solid #1e1e3a;
+  border-radius: 4px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  color: #a3e635;
+  margin: 1rem 0;
+}
+.attempt-bar-fill {
+  height: 4px;
+  background: linear-gradient(90deg, #22c55e, #f97316, #ef4444);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+.hint-box {
+  background: rgba(139,92,246,0.08);
+  border: 1px solid rgba(139,92,246,0.25);
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+}
+.connection-box {
+  background: #050508;
+  border: 1px solid rgba(6,182,212,0.3);
+  border-radius: 4px;
+  padding: 1rem;
+  font-family: 'Share Tech Mono', monospace;
+  color: #06b6d4;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% if result and result.correct %}
+<script>
+window.addEventListener('load', () => {
+  showCelebration({{ result | tojson }});
+  {% if result.is_boss %}
+  triggerShenron();
+  {% endif %}
+});
+</script>
+{% endif %}
+
+<div class="mb-4">
+  <a href="{{ url_for('challenges.list') }}" class="font-mono text-xs text-gray-500 hover:text-orange-400">
+    ← Back to Challenges
+  </a>
+</div>
+
+<!-- Header -->
+<div class="challenge-header mb-6">
+  <div class="flex flex-wrap items-start gap-4 justify-between">
+    <div class="flex-1">
+      {% if challenge.is_boss %}
+      <div class="font-display text-xs text-yellow-400 uppercase tracking-widest mb-2">⭐ Boss Challenge</div>
+      {% endif %}
+      <h1 class="font-display text-2xl md:text-3xl font-black text-white mb-2">{{ challenge.title }}</h1>
+      <div class="flex flex-wrap gap-2 items-center">
+        <span class="cat-badge">{{ challenge.category }}</span>
+        <span class="diff-{{ challenge.difficulty }} text-xs px-2 py-0.5 rounded font-mono">{{ challenge.difficulty }}</span>
+        <span class="font-mono text-xs text-gray-500">{{ challenge.solve_count }} solve{{ 's' if challenge.solve_count != 1 }}</span>
+        {% if first_blood %}
+        <span class="font-mono text-xs text-red-400">🩸 First: {{ first_blood.team.name }}</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="text-right">
+      <div class="font-display font-black text-4xl {% if challenge.is_boss %}text-yellow-400{% else %}text-orange-400{% endif %}">
+        {{ challenge.points }}
+      </div>
+      <div class="font-display text-xs text-gray-500 uppercase tracking-widest">points</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-6">
+  <!-- Description -->
+  <div class="lg:col-span-2 space-y-6">
+
+    <div class="ctf-card p-6">
+      <h3 class="font-display text-xs text-gray-500 uppercase tracking-widest mb-4">Description</h3>
+      <div class="desc-body">{{ challenge.description | safe }}</div>
+    </div>
+
+    <!-- Connection info (pwn) -->
+    {% if challenge.connection_info %}
+    <div class="connection-box">
+      <div class="font-display text-xs text-cyan-600 uppercase tracking-widest mb-2">Connection</div>
+      <div class="text-lg">{{ challenge.connection_info }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Hints -->
+    {% if hints %}
+    <div class="ctf-card p-6">
+      <h3 class="font-display text-xs text-gray-500 uppercase tracking-widest mb-4">
+        💡 Hints ({{ hints|length }})
+      </h3>
+      <div class="space-y-3">
+        {% for hint in hints %}
+        <div class="hint-box">
+          <div class="text-sm text-purple-300">{{ hint.content }}</div>
+          {% if hint.cost > 0 %}
+          <div class="font-mono text-xs text-gray-500 mt-1">Cost: -{{ hint.cost }} pts</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Submit Panel -->
+  <div class="space-y-4">
+
+    <!-- Status -->
+    {% if already_solved %}
+    <div class="ctf-card p-6 text-center border-green-800/40">
+      <div class="text-4xl mb-2">✅</div>
+      <div class="font-display text-sm font-bold text-green-400 uppercase tracking-widest">Solved!</div>
+      <div class="font-mono text-xs text-gray-500 mt-1">Your team captured this flag</div>
+    </div>
+    {% elif not current_user.team %}
+    <div class="ctf-card p-6 text-center">
+      <div class="text-4xl mb-2">👥</div>
+      <div class="font-body text-gray-400 mb-4">Join a team to submit flags</div>
+      <a href="{{ url_for('team.dashboard') }}" class="btn-primary">Go to Team</a>
+    </div>
+    {% else %}
+
+    <!-- Attempt counter -->
+    <div class="ctf-card p-4">
+      <div class="flex justify-between items-center mb-2">
+        <span class="font-display text-xs text-gray-500 uppercase tracking-widest">Attempts</span>
+        <span class="font-mono text-sm {% if attempt_count >= max_attempts %}text-red-400{% elif attempt_count >= max_attempts * 0.7 %}text-yellow-400{% else %}text-gray-400{% endif %}">
+          {{ attempt_count }} / {{ max_attempts }}
+        </span>
+      </div>
+      <div class="w-full bg-gray-900 rounded-full h-1">
+        <div class="attempt-bar-fill" style="width: {{ [attempt_count / max_attempts * 100, 100] | min }}%"></div>
+      </div>
+      {% if attempt_count >= max_attempts %}
+      <div class="font-mono text-xs text-red-400 mt-2">⚠ Penalty: -10pts per wrong submission</div>
+      {% endif %}
+    </div>
+
+    <!-- Flag submission -->
+    {% if can_submit %}
+    <div class="ctf-card p-6">
+      <h3 class="font-display text-xs text-gray-500 uppercase tracking-widest mb-4">Submit Flag</h3>
+
+      {% if result and not result.correct %}
+      <div class="flash-error rounded p-3 mb-4 font-mono text-sm">
+        ✗ Wrong flag. {{ result.attempts_left }} attempt{{ 's' if result.attempts_left != 1 }} left before penalty.
+      </div>
+      {% endif %}
+
+      {% if challenge.is_dynamic %}
+      <div class="bg-purple-900/10 border border-purple-800/30 rounded p-3 mb-4">
+        <div class="font-display text-xs text-purple-400 uppercase tracking-widest mb-1">Dynamic Flag</div>
+        <div class="font-mono text-xs text-gray-400">This challenge uses a per-team flag.</div>
+        {% if dynamic_flag_display %}
+        <div class="font-mono text-sm text-purple-300 mt-1">{{ dynamic_flag_display }}</div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <form method="POST" class="space-y-4">
+        <div>
+          <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">
+            Flag — format: <span class="text-orange-400">{{ flag_prefix }}{...}</span>
+          </label>
+          <input type="text" name="flag" required
+            class="ctf-input" placeholder="{{ flag_prefix }}{your_flag_here}"
+            autocomplete="off" spellcheck="false"/>
+        </div>
+        <button type="submit" class="btn-primary w-full py-3">
+          Submit Flag →
+        </button>
+      </form>
+    </div>
+    {% else %}
+    <div class="ctf-card p-4">
+      <div class="font-mono text-xs text-gray-500 text-center">
+        {% if not can_submit %}
+        Submissions are currently closed.
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

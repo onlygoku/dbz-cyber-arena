@@ -1,0 +1,63 @@
+{% extends "admin/base.html" %}
+{% block title %}Submissions{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="font-display text-xl font-bold text-orange-400 uppercase tracking-widest">Submissions</h1>
+  <form method="GET" class="flex gap-2">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search team name…"
+      class="admin-input text-sm" style="width:200px"/>
+    <button type="submit" class="btn-ghost">Search</button>
+  </form>
+</div>
+
+<div class="admin-card overflow-x-auto">
+  <table class="ctf-table">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Team</th>
+        <th>User</th>
+        <th>Challenge</th>
+        <th>Submitted Flag</th>
+        <th>Result</th>
+        <th>IP</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sub in subs.items %}
+      <tr>
+        <td class="font-mono text-xs text-gray-500">{{ sub.submitted_at.strftime('%H:%M:%S') }}</td>
+        <td class="font-body font-bold text-gray-300 text-sm">{{ sub.team.name if sub.team else '—' }}</td>
+        <td class="font-mono text-xs text-gray-400">{{ sub.user.username if sub.user else '—' }}</td>
+        <td class="font-body text-sm text-gray-300">{{ sub.challenge.title if sub.challenge else '—' }}</td>
+        <td class="font-mono text-xs text-gray-500 max-w-xs truncate" title="{{ sub.submitted_flag }}">{{ sub.submitted_flag }}</td>
+        <td>
+          {% if sub.is_correct %}
+          <span class="badge-green">✓ Correct</span>
+          {% else %}
+          <span class="badge-red">✗ Wrong</span>
+          {% endif %}
+        </td>
+        <td class="font-mono text-xs text-gray-600">{{ sub.ip_address or '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center py-8 text-gray-600 font-mono">No submissions yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination -->
+{% if subs.pages > 1 %}
+<div class="flex justify-center gap-2 mt-6">
+  {% if subs.has_prev %}
+  <a href="{{ url_for('admin.submissions', page=subs.prev_num, q=q) }}" class="btn-ghost text-xs py-1 px-3">← Prev</a>
+  {% endif %}
+  <span class="font-mono text-xs text-gray-500 py-1 px-3">Page {{ subs.page }} / {{ subs.pages }}</span>
+  {% if subs.has_next %}
+  <a href="{{ url_for('admin.submissions', page=subs.next_num, q=q) }}" class="btn-ghost text-xs py-1 px-3">Next →</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

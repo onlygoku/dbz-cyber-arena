@@ -1,0 +1,84 @@
+{% extends "admin/base.html" %}
+{% block title %}Teams{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <h1 class="font-display text-xl font-bold text-orange-400 uppercase tracking-widest">Teams</h1>
+</div>
+
+<div class="admin-card overflow-x-auto">
+  <table class="ctf-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Members</th>
+        <th>Score</th>
+        <th>Solves</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for team in teams %}
+      <tr>
+        <td class="font-mono text-gray-600 text-xs">{{ team.id }}</td>
+        <td class="font-body font-bold text-gray-200">{{ team.name }}</td>
+        <td class="font-mono text-gray-400">
+          {% for m in team.active_members %}
+          <span class="text-xs {% if m.is_captain %}text-yellow-400{% else %}text-gray-500{% endif %}">
+            {{ m.user.username }}{% if m.is_captain %}★{% endif %}
+          </span>{% if not loop.last %}, {% endif %}
+          {% endfor %}
+        </td>
+        <td class="font-mono font-bold text-orange-400">{{ team.score }}</td>
+        <td class="font-mono text-green-400">{{ team.solves.count() }}</td>
+        <td>
+          {% if team.is_banned %}<span class="badge-red">Banned</span>
+          {% elif team.is_paused %}<span class="badge-yellow">Paused</span>
+          {% else %}<span class="badge-green">Active</span>{% endif %}
+        </td>
+        <td class="font-mono text-xs text-gray-600">{{ team.created_at.strftime('%Y-%m-%d') }}</td>
+        <td>
+          <div class="flex gap-1 flex-wrap">
+            {% if team.is_banned %}
+            <form method="POST" action="{{ url_for('admin.team_action', team_id=team.id) }}" class="inline">
+              <input type="hidden" name="action" value="unban"/>
+              <button type="submit" class="btn-ghost text-xs py-0.5 px-2">Unban</button>
+            </form>
+            {% else %}
+            <form method="POST" action="{{ url_for('admin.team_action', team_id=team.id) }}" class="inline">
+              <input type="hidden" name="action" value="ban"/>
+              <button type="submit" class="btn-ghost text-xs py-0.5 px-2 text-red-400 border-red-900/40"
+                onclick="return confirm('Ban {{ team.name }}?')">Ban</button>
+            </form>
+            {% endif %}
+
+            {% if team.is_paused %}
+            <form method="POST" action="{{ url_for('admin.team_action', team_id=team.id) }}" class="inline">
+              <input type="hidden" name="action" value="unpause"/>
+              <button type="submit" class="btn-ghost text-xs py-0.5 px-2">Unpause</button>
+            </form>
+            {% else %}
+            <form method="POST" action="{{ url_for('admin.team_action', team_id=team.id) }}" class="inline">
+              <input type="hidden" name="action" value="pause"/>
+              <button type="submit" class="btn-ghost text-xs py-0.5 px-2 text-yellow-400 border-yellow-900/40">Pause</button>
+            </form>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('admin.team_action', team_id=team.id) }}" class="inline">
+              <input type="hidden" name="action" value="reset"/>
+              <button type="submit" class="btn-ghost text-xs py-0.5 px-2 text-red-400 border-red-900/40"
+                onclick="return confirm('Reset ALL progress for {{ team.name }}? This cannot be undone.')">Reset</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="text-center py-8 text-gray-600 font-mono">No teams yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

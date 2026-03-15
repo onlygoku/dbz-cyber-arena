@@ -1,0 +1,103 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Edit' if challenge else 'New' }} Challenge{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center gap-4">
+  <a href="{{ url_for('admin.challenges') }}" class="font-mono text-xs text-gray-500 hover:text-orange-400">← Challenges</a>
+  <h1 class="font-display text-xl font-bold text-orange-400 uppercase tracking-widest">
+    {{ 'Edit Challenge' if challenge else 'New Challenge' }}
+  </h1>
+</div>
+
+<div class="admin-card p-8 max-w-2xl">
+  <form method="POST" enctype="multipart/form-data" class="space-y-5">
+
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="md:col-span-2">
+        <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Title *</label>
+        <input type="text" name="title" required class="admin-input w-full"
+          value="{{ challenge.title if challenge else '' }}" placeholder="Capsule Corp Login Leak"/>
+      </div>
+
+      <div>
+        <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Category *</label>
+        <select name="category" class="admin-input w-full">
+          {% for cat in ['web','crypto','pwn','rev','forensics','osint','misc','network'] %}
+          <option value="{{ cat }}" {% if challenge and challenge.category == cat %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Difficulty *</label>
+        <select name="difficulty" class="admin-input w-full">
+          {% for d in ['easy','medium','hard','extreme'] %}
+          <option value="{{ d }}" {% if challenge and challenge.difficulty == d %}selected{% endif %}>{{ d }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Points *</label>
+        <input type="number" name="points" required class="admin-input w-full" min="1" max="9999"
+          value="{{ challenge.points if challenge else 100 }}"/>
+      </div>
+
+      <div>
+        <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Connection Info (pwn)</label>
+        <input type="text" name="connection_info" class="admin-input w-full"
+          value="{{ challenge.connection_info or '' }}" placeholder="nc pwn.server.com 1337"/>
+      </div>
+    </div>
+
+    <div>
+      <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Description * (HTML supported)</label>
+      <textarea name="description" rows="8" class="admin-input w-full resize-y" required
+        placeholder="Challenge description...">{{ challenge.description if challenge else '' }}</textarea>
+    </div>
+
+    <div>
+      <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">Flag (inner value only, no prefix/braces) *</label>
+      <input type="text" name="flag" required class="admin-input w-full font-mono"
+        value="{{ challenge.flag if challenge else '' }}" placeholder="s3cr3t_flag_v4lue"
+        autocomplete="off"/>
+      <p class="font-mono text-xs text-gray-600 mt-1">Do NOT include PREFIX{...}. Store only the inner value.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-6">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" name="is_dynamic" class="accent-orange-500"
+          {{ 'checked' if challenge and challenge.is_dynamic else '' }}/>
+        <span class="font-display text-xs text-gray-400 uppercase tracking-widest">Dynamic Flag (per-team)</span>
+      </label>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" name="is_hidden" class="accent-orange-500"
+          {{ 'checked' if challenge and challenge.is_hidden else '' }}/>
+        <span class="font-display text-xs text-gray-400 uppercase tracking-widest">Hidden</span>
+      </label>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" name="is_boss" class="accent-yellow-500"
+          {{ 'checked' if challenge and challenge.is_boss else '' }}/>
+        <span class="font-display text-xs text-yellow-400 uppercase tracking-widest">⭐ Boss Challenge</span>
+      </label>
+    </div>
+
+    
+    <div>
+      <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">
+        Challenge Files <span class="text-gray-600 normal-case font-mono">(optional)</span>
+      </label>
+      <input type="file" name="challenge_files" multiple class="admin-input text-sm py-2"/>
+      <p class="font-mono text-xs text-gray-600 mt-1">Upload binaries, source code, pcap files, etc.</p>
+    </div>
+
+    <div class="flex gap-4 pt-2">
+      <button type="submit" class="btn-admin px-8 py-2.5">
+        {{ 'Save Changes' if challenge else 'Create Challenge' }}
+      </button>
+      <a href="{{ url_for('admin.challenges') }}" class="btn-ghost px-6 py-2.5">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+

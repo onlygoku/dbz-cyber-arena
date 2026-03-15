@@ -1,0 +1,92 @@
+# Render.com Infrastructure Blueprint
+# Deploy with: render blueprint apply
+# Or connect this repo to Render dashboard and it will auto-detect.
+
+services:
+
+  # ── Web Service ─────────────────────────────────────────────────────────────
+  - type: web
+    name: dbz-cyber-arena
+    runtime: python
+    region: oregon
+    plan: starter            # upgrade to standard for production events
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn run:app --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --access-logfile - --error-logfile -
+    healthCheckPath: /
+    autoDeploy: true
+
+    envVars:
+      - key: FLASK_ENV
+        value: production
+
+      - key: SECRET_KEY
+        generateValue: true       # Render generates a secure random value
+
+      - key: DYNAMIC_FLAG_SECRET
+        generateValue: true
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dbz-ctf-db
+          property: connectionString
+
+      # ── CTF Configuration ──────────────────────────────────────────────────
+      - key: FLAG_PREFIX
+        value: THA               # Change this to your desired prefix
+
+      - key: CTF_NAME
+        value: Dragon Ball Z Cyber Arena
+
+      - key: MAX_TEAM_SIZE
+        value: "3"
+
+      - key: MAX_ATTEMPTS
+        value: "10"
+
+      - key: PENALTY_POINTS
+        value: "10"
+
+      - key: SCOREBOARD_CACHE_TTL
+        value: "10"
+
+      - key: FREEZE_MINUTES_BEFORE_END
+        value: "60"
+
+      # ── Admin Bootstrap ────────────────────────────────────────────────────
+      - key: ADMIN_EMAIL
+        value: admin@yourdomain.com   # CHANGE THIS
+
+      - key: ADMIN_PASSWORD
+        value: ChangeThisSecurePassword1!  # CHANGE THIS — use Render Secrets
+
+      # ── Mail (optional — set to suppress in dev) ───────────────────────────
+      - key: MAIL_SUPPRESS_SEND
+        value: "false"
+
+      - key: MAIL_SERVER
+        value: smtp.gmail.com
+
+      - key: MAIL_PORT
+        value: "587"
+
+      - key: MAIL_USE_TLS
+        value: "true"
+
+      - key: MAIL_USERNAME
+        value: ""   # Set via Render dashboard Secrets
+
+      - key: MAIL_PASSWORD
+        value: ""   # Set via Render dashboard Secrets
+
+      - key: MAIL_DEFAULT_SENDER
+        value: noreply@yourdomain.com
+
+
+# ── PostgreSQL Database ────────────────────────────────────────────────────────
+databases:
+
+  - name: dbz-ctf-db
+    databaseName: ctfdb
+    user: ctf
+    region: oregon
+    plan: starter            # upgrade for larger events

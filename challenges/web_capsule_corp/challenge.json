@@ -1,0 +1,24 @@
+{
+  "title": "Capsule Corp Login Leak",
+  "category": "web",
+  "difficulty": "easy",
+  "points": 150,
+  "is_dynamic": false,
+  "is_hidden": false,
+  "is_boss": false,
+  "description": "Bulma left some debug headers exposed on the Capsule Corp employee portal. Find the leaked flag.",
+  "hints": [
+    {
+      "content": "HTTP response headers can sometimes reveal more than intended.",
+      "cost": 0,
+      "auto_release_minutes": 30,
+      "is_visible": false
+    },
+    {
+      "content": "Try looking at the X-Debug-* headers in the response.",
+      "cost": 0,
+      "auto_release_solves": 10,
+      "is_visible": false
+    }
+  ]
+}
