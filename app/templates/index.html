@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Welcome{% endblock %}
 
 {% block extra_head %}
@@ -53,7 +53,7 @@
 {% block content %}
 <div class="hero-bg grid-lines -mx-6 -mt-8 px-6 pt-24 pb-20 mb-16">
   <div class="text-center max-w-4xl mx-auto">
-    <div class="text-8xl mb-6 dragon-glow">🐉</div>
+    <div class="text-8xl mb-6 dragon-glow">ðŸ‰</div>
     <h1 class="font-display font-black text-4xl md:text-6xl mb-4 leading-none">
       <span class="text-orange-400">DRAGON BALL Z</span><br/>
       <span class="text-yellow-400">CYBER ARENA</span>
@@ -120,13 +120,13 @@
       <!-- Track -->
       <div id="carouselTrack" style="display:flex; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); will-change: transform;">
         {% for cat, icon, color, desc in [
-          ('Web',               '🌐', '#3b82f6', 'SQL injection, XSS, SSRF & more'),
-          ('Cryptography',      '🔐', '#f97316', 'Ciphers, hashes & crypto attacks'),
-          ('Pwn',               '💥', '#ef4444', 'Buffer overflows & exploitation'),
-          ('Reverse Engineering','🔄', '#8b5cf6', 'Disassemble & analyze binaries'),
-          ('Forensics',         '🔍', '#06b6d4', 'Disk images, pcaps & memory'),
-          ('OSINT',             '👁',  '#fbbf24', 'Open source intelligence'),
-          ('Misc',              '🐉', '#22c55e', 'Steganography & wild cards')
+          ('Web',               'ðŸŒ', '#3b82f6', 'SQL injection, XSS, SSRF & more'),
+          ('Cryptography',      'ðŸ”', '#f97316', 'Ciphers, hashes & crypto attacks'),
+          ('Pwn',               'ðŸ’¥', '#ef4444', 'Buffer overflows & exploitation'),
+          ('Reverse Engineering','ðŸ”„', '#8b5cf6', 'Disassemble & analyze binaries'),
+          ('Forensics',         'ðŸ”', '#06b6d4', 'Disk images, pcaps & memory'),
+          ('OSINT',             'ðŸ‘',  '#fbbf24', 'Open source intelligence'),
+          ('Misc',              'ðŸ‰', '#22c55e', 'Steganography & wild cards')
         ] %}
         <div class="carousel-slide" style="min-width:100%; padding: 0 4px; box-sizing: border-box;">
           <div style="background: rgba(0,0,0,0.3); border: 1px solid #1e1e3a; border-radius:6px; padding: 2rem; text-align:center; position:relative; overflow:hidden;">
@@ -145,13 +145,13 @@
                background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.4);
                color:#f97316;width:32px;height:32px;border-radius:50%;
                font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
-               transition:background 0.2s;">‹</button>
+               transition:background 0.2s;">â€¹</button>
       <button id="carouselNext" onclick="carouselMove(1)"
         style="position:absolute;right:-12px;top:50%;transform:translateY(-50%);
                background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.4);
                color:#f97316;width:32px;height:32px;border-radius:50%;
                font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
-               transition:background 0.2s;">›</button>
+               transition:background 0.2s;">â€º</button>
     </div>
 
     <!-- Dots -->
@@ -168,13 +168,13 @@
   <div class="ctf-card p-6">
     <h3 class="font-display text-sm font-bold text-yellow-400 uppercase tracking-widest mb-4">Rules & Format</h3>
     <ul class="space-y-3 text-gray-300 text-sm font-body">
-      <li class="flex gap-2"><span class="text-orange-400">▸</span> Teams of up to 3 members</li>
-      <li class="flex gap-2"><span class="text-orange-400">▸</span> 10 attempts per challenge before penalty kicks in</li>
-      <li class="flex gap-2"><span class="text-orange-400">▸</span> −10 points per wrong submission after limit</li>
-      <li class="flex gap-2"><span class="text-orange-400">▸</span> Dynamic per-team flags on select challenges</li>
-      <li class="flex gap-2"><span class="text-orange-400">▸</span> Scoreboard freezes in the final hour</li>
-      <li class="flex gap-2"><span class="text-orange-400">▸</span> First Blood bonus badge on each challenge</li>
-      <li class="flex gap-2"><span class="text-yellow-400 font-bold">★</span> Boss Challenge: <strong class="text-yellow-300">Shenron Ultimate Wish</strong> — 1000 pts</li>
+      <li class="flex gap-2"><span class="text-orange-400">â–¸</span> Teams of up to 3 members</li>
+      <li class="flex gap-2"><span class="text-orange-400">â–¸</span> 10 attempts per challenge before penalty kicks in</li>
+      <li class="flex gap-2"><span class="text-orange-400">â–¸</span> âˆ’10 points per wrong submission after limit</li>
+      <li class="flex gap-2"><span class="text-orange-400">â–¸</span> Dynamic per-team flags on select challenges</li>
+      <li class="flex gap-2"><span class="text-orange-400">â–¸</span> Scoreboard freezes in the final hour</li>
+      <li class="flex gap-2"><span class="text-orange-400">â–¸</span> First Blood bonus badge on each challenge</li>
+      <li class="flex gap-2"><span class="text-yellow-400 font-bold">â˜…</span> Boss Challenge: <strong class="text-yellow-300">Shenron Ultimate Wish</strong> â€” 1000 pts</li>
     </ul>
   </div>
 </div>
