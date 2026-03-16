@@ -181,3 +181,14 @@ function triggerShenron() {
 
   animate();
 }
+document.addEventListener("mousemove", function(e){
+
+  const dragon = document.querySelector(".hero-dragon img")
+
+  if(!dragon) return
+
+  const x = (window.innerWidth / 2 - e.clientX) / 40
+  const y = (window.innerHeight / 2 - e.clientY) / 40
+
+  dragon.style.transform = `translate(${x}px, ${y}px)`
+})

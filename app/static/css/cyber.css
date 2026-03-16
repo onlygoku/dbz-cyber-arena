@@ -1,0 +1,194 @@
+/* =========================
+   HERO BACKGROUND
+========================= */
+
+.hero-bg{
+background:
+radial-gradient(circle at 30% 50%, rgba(249,115,22,0.15), transparent 60%),
+radial-gradient(circle at 70% 20%, rgba(251,191,36,0.08), transparent 60%),
+#0a0a0f;
+}
+
+/* cyber grid */
+
+.grid-lines{
+background-image:
+linear-gradient(rgba(249,115,22,0.04) 1px, transparent 1px),
+linear-gradient(90deg, rgba(249,115,22,0.04) 1px, transparent 1px);
+background-size:40px 40px;
+}
+
+/* =========================
+   SHENRON CONTAINER
+========================= */
+
+.hero-dragon{
+position:relative;
+width:520px;
+margin:0 auto;
+}
+
+/* glow around shenron */
+
+.dragon-glow{
+filter:drop-shadow(0 0 60px rgba(255,150,0,0.7));
+}
+
+/* =========================
+   SHENRON ENERGY AURA
+========================= */
+
+.shenron-aura{
+position:absolute;
+width:650px;
+height:650px;
+background:radial-gradient(circle, rgba(255,140,0,0.35) 0%, transparent 70%);
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+animation:auraPulse 4s ease-in-out infinite;
+pointer-events:none;
+}
+
+@keyframes auraPulse{
+
+0%{
+opacity:0.4;
+transform:translate(-50%,-50%) scale(1);
+}
+
+50%{
+opacity:0.9;
+transform:translate(-50%,-50%) scale(1.12);
+}
+
+100%{
+opacity:0.4;
+transform:translate(-50%,-50%) scale(1);
+}
+
+}
+
+/* =========================
+   DRAGON BALLS
+========================= */
+
+.dragonball{
+position:absolute;
+width:70px;
+height:70px;
+border-radius:50%;
+background:radial-gradient(circle,#ffcc00,#ff5a00);
+box-shadow:0 0 35px rgba(255,150,0,0.9);
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:bold;
+color:white;
+font-size:20px;
+animation:float 6s ease-in-out infinite;
+}
+
+/* positions around shenron */
+
+.ball1{top:-40px; left:40%}
+.ball2{top:90px; right:-40px}
+.ball3{top:220px; right:-60px}
+.ball4{bottom:140px; right:-30px}
+.ball5{bottom:40px; left:45%}
+.ball6{top:240px; left:-60px}
+
+/* floating animation */
+
+@keyframes float{
+
+0%{
+transform:translateY(0);
+}
+
+50%{
+transform:translateY(-18px);
+}
+
+100%{
+transform:translateY(0);
+}
+
+}
+
+/* =========================
+   STATS BOX
+========================= */
+
+.stat-box{
+background:rgba(15,15,26,0.85);
+border:1px solid #1e1e3a;
+border-radius:6px;
+padding:1.5rem;
+text-align:center;
+position:relative;
+overflow:hidden;
+}
+
+.stat-box::before{
+content:'';
+position:absolute;
+top:0;
+left:0;
+right:0;
+height:2px;
+background:linear-gradient(90deg,transparent,#f97316,transparent);
+}
+
+/* =========================
+   FEATURE LIST
+========================= */
+
+.feature-line{
+display:flex;
+align-items:flex-start;
+gap:12px;
+padding:0.75rem 0;
+border-bottom:1px solid rgba(30,30,58,0.5);
+}
+
+/* =========================
+   NAVBAR GLOW
+========================= */
+
+nav{
+box-shadow:0 0 25px rgba(255,140,0,0.25);
+border-bottom:1px solid rgba(255,140,0,0.4);
+}
+
+/* =========================
+   BUTTON EFFECTS
+========================= */
+
+.btn-primary{
+background:linear-gradient(135deg,#ff6a00,#ff3c00);
+color:white;
+border-radius:6px;
+padding:10px 22px;
+font-weight:bold;
+transition:all .25s ease;
+box-shadow:0 0 15px rgba(255,120,0,0.5);
+}
+
+.btn-primary:hover{
+transform:translateY(-2px);
+box-shadow:0 0 25px rgba(255,120,0,0.9);
+}
+
+.btn-secondary{
+border:1px solid #ff6a00;
+padding:10px 22px;
+border-radius:6px;
+transition:all .25s ease;
+}
+
+.btn-secondary:hover{
+background:#ff6a00;
+color:white;
+box-shadow:0 0 15px rgba(255,120,0,0.8);
+}
