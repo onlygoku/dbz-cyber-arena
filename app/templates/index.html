@@ -88,27 +88,30 @@ pointer-events:none;
 
 .orbit{
 position:absolute;
-width:650px;
-height:650px;
+width:600px;
+height:600px;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
-animation:rotateOrbit 25s linear infinite;
+animation:orbitSpin 25s linear infinite;
 }
 
 /* orbit rotation */
 
-@keyframes rotateOrbit{
+@keyframes orbitSpin{
 from{transform:translate(-50%,-50%) rotate(0deg)}
 to{transform:translate(-50%,-50%) rotate(360deg)}
 }
 
-/* dragon ball style */
+/* dragon ball */
 
 .dragonball{
 position:absolute;
+top:50%;
+left:50%;
 width:70px;
 height:70px;
+margin:-35px;
 border-radius:50%;
 background:radial-gradient(circle,#ffd000,#ff6a00);
 box-shadow:0 0 35px rgba(255,150,0,0.9);
@@ -117,41 +120,17 @@ align-items:center;
 justify-content:center;
 color:white;
 font-weight:bold;
-font-size:20px;
+font-size:18px;
 }
 
-/* symmetric orbit positions */
+/* perfectly spaced 6 balls */
 
-.ball1{top:0%; left:50%; transform:translate(-50%,0)}
-.ball2{top:25%; right:0%; transform:translate(0,-50%)}
-.ball3{bottom:25%; right:0%; transform:translate(0,50%)}
-.ball4{bottom:0%; left:50%; transform:translate(-50%,0)}
-.ball5{bottom:25%; left:0%; transform:translate(0,50%)}
-.ball6{top:25%; left:0%; transform:translate(0,-50%)}
-
-.dragonball{
-position:absolute;
-width:70px;
-height:70px;
-border-radius:50%;
-background:radial-gradient(circle,#ffd000,#ff6a00);
-box-shadow:0 0 35px rgba(255,150,0,0.9);
-display:flex;
-align-items:center;
-justify-content:center;
-color:white;
-font-weight:bold;
-font-size:20px;
-}
-
-/* orbit positions */
-
-.ball1{top:-20px;left:45%}
-.ball2{top:120px;right:-20px}
-.ball3{bottom:120px;right:-30px}
-.ball4{bottom:-20px;left:45%}
-.ball5{bottom:120px;left:-30px}
-.ball6{top:120px;left:-20px}
+.ball1{transform:rotate(0deg) translate(280px) rotate(0deg);}
+.ball2{transform:rotate(60deg) translate(280px) rotate(-60deg);}
+.ball3{transform:rotate(120deg) translate(280px) rotate(-120deg);}
+.ball4{transform:rotate(180deg) translate(280px) rotate(-180deg);}
+.ball5{transform:rotate(240deg) translate(280px) rotate(-240deg);}
+.ball6{transform:rotate(300deg) translate(280px) rotate(-300deg);}
 
 /* ===== BUTTONS ===== */
 
