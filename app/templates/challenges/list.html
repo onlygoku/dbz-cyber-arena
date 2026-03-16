@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Challenges{% endblock %}
 
 {% block extra_head %}
@@ -26,7 +26,7 @@
   opacity: 0.75;
 }
 .chal-card.solved::after {
-  content: '✓';
+  content: 'âœ“';
   position: absolute;
   top: 10px; right: 12px;
   font-size: 1rem;
@@ -101,7 +101,7 @@
 {% for cat, chals in categories.items() %}
 <div class="mb-10 category-section" data-cat="{{ cat }}">
   <div class="cat-header">
-    <span>{{ chals[0].category | replace('web','🌐') | replace('crypto','🔐') | replace('pwn','💥') | replace('rev','🔄') | replace('forensics','🔍') | replace('osint','👁') | replace('misc','🐉') | replace('network','📡') }}</span>
+    <span>{{ chals[0].category | replace('web','ðŸŒ') | replace('crypto','ðŸ”') | replace('pwn','ðŸ’¥') | replace('rev','ðŸ”„') | replace('forensics','ðŸ”') | replace('osint','ðŸ‘') | replace('misc','ðŸ‰') | replace('network','ðŸ“¡') }}</span>
     <span>{{ cat }}</span>
     <span class="ml-auto text-xs">
       {{ chals | selectattr('id', 'in', solved_ids) | list | length }}/{{ chals | length }} solved
@@ -113,7 +113,7 @@
        class="chal-card {% if ch.id in solved_ids %}solved{% endif %} {% if ch.is_boss %}boss-card{% endif %}">
 
       {% if ch.is_boss %}
-      <div class="font-display text-xs text-yellow-400 uppercase tracking-widest mb-2">⭐ Boss Challenge</div>
+      <div class="font-display text-xs text-yellow-400 uppercase tracking-widest mb-2">â­ Boss Challenge</div>
       {% endif %}
 
       <div class="flex items-start justify-between mb-2">
@@ -133,7 +133,7 @@
       </div>
 
       {% if ch.first_blood %}
-      <div class="font-mono text-xs text-red-500 mt-1">🩸 {{ ch.first_blood.team.name }}</div>
+      <div class="font-mono text-xs text-red-500 mt-1">ðŸ©¸ {{ ch.first_blood.team.name }}</div>
       {% endif %}
     </a>
     {% endfor %}
@@ -141,7 +141,7 @@
 </div>
 {% else %}
 <div class="text-center py-24">
-  <div class="text-5xl mb-4">🔒</div>
+  <div class="text-5xl mb-4">ðŸ”’</div>
   <div class="font-display text-xl text-gray-500">No challenges available yet</div>
   <div class="text-sm text-gray-600 mt-2">Check back when the event starts</div>
 </div>
@@ -168,3 +168,4 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 });
 </script>
 {% endblock %}
+
