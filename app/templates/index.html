@@ -84,6 +84,8 @@ pointer-events:none;
 
 /* ===== DRAGON BALL ORBIT ===== */
 
+/* ORBIT CONTAINER */
+
 .orbit{
 position:absolute;
 width:650px;
@@ -91,13 +93,41 @@ height:650px;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
-animation:rotateOrbit 30s linear infinite;
+animation:rotateOrbit 25s linear infinite;
 }
+
+/* orbit rotation */
 
 @keyframes rotateOrbit{
 from{transform:translate(-50%,-50%) rotate(0deg)}
 to{transform:translate(-50%,-50%) rotate(360deg)}
 }
+
+/* dragon ball style */
+
+.dragonball{
+position:absolute;
+width:70px;
+height:70px;
+border-radius:50%;
+background:radial-gradient(circle,#ffd000,#ff6a00);
+box-shadow:0 0 35px rgba(255,150,0,0.9);
+display:flex;
+align-items:center;
+justify-content:center;
+color:white;
+font-weight:bold;
+font-size:20px;
+}
+
+/* symmetric orbit positions */
+
+.ball1{top:0%; left:50%; transform:translate(-50%,0)}
+.ball2{top:25%; right:0%; transform:translate(0,-50%)}
+.ball3{bottom:25%; right:0%; transform:translate(0,50%)}
+.ball4{bottom:0%; left:50%; transform:translate(-50%,0)}
+.ball5{bottom:25%; left:0%; transform:translate(0,50%)}
+.ball6{top:25%; left:0%; transform:translate(0,-50%)}
 
 .dragonball{
 position:absolute;
