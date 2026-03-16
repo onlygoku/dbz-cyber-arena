@@ -350,10 +350,19 @@ def challenge_toggle_hidden(chal_id):
 @admin_bp.route('/challenges/<int:chal_id>/delete', methods=['POST'])
 def challenge_delete(chal_id):
     ch = Challenge.query.get_or_404(chal_id)
-    db.session.delete(ch)
-    db.session.commit()
-    flush_cache()
-    flash('Challenge deleted.', 'warning')
+    try:
+        from app.models.security import SecurityEvent
+        SecurityEvent.query.filter_by(challenge_id=chal_id).update({'challenge_id': None})
+        Hint.query.filter_by(challenge_id=chal_id).delete()
+        Solve.query.filter_by(challenge_id=chal_id).delete()
+        Submission.query.filter_by(challenge_id=chal_id).delete()
+        db.session.delete(ch)
+        db.session.commit()
+        flush_cache()
+        flash('Challenge deleted.', 'warning')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Delete failed: {str(e)}', 'error')
     return redirect(url_for('admin.challenges'))
 
 
