@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{% block title %}{% endblock %} | Dragon Ball Z Cyber Arena</title>
 
@@ -215,7 +216,7 @@
     /* Solved overlay on challenge card */
     .challenge-solved { opacity: 0.6; }
     .challenge-solved::after {
-      content: '✓ SOLVED';
+      content: 'âœ“ SOLVED';
       position: absolute;
       top: 8px; right: 8px;
       font-family: 'Orbitron', sans-serif;
@@ -236,7 +237,7 @@
 {% set state = namespace(obj=None) %}
 {% if g_state and g_state.announcement %}
 <div class="announcement-bar px-4 py-2 text-center text-sm font-mono text-yellow-400">
-  📡 {{ g_state.announcement }}
+  ðŸ“¡ {{ g_state.announcement }}
 </div>
 {% endif %}
 
@@ -246,7 +247,7 @@
 
     <!-- Logo -->
     <a href="{{ url_for('auth.index') }}" class="flex items-center gap-3">
-      <span class="text-2xl">🐉</span>
+      <span class="text-2xl">ðŸ‰</span>
       <div>
         <div class="font-display text-sm font-bold text-orange-400 leading-none">DRAGON BALL Z</div>
         <div class="font-display text-xs text-yellow-400 leading-none tracking-widest">CYBER ARENA</div>
@@ -290,7 +291,7 @@
 <div class="max-w-7xl mx-auto px-6 pt-4 space-y-2">
   {% for category, message in messages %}
   <div class="flash-{{ category }} rounded px-4 py-3 text-sm font-mono flex items-center gap-2 animate-fade-in-up">
-    {% if category == 'success' %}✓{% elif category == 'error' %}✗{% elif category == 'warning' %}⚠{% else %}ℹ{% endif %}
+    {% if category == 'success' %}âœ“{% elif category == 'error' %}âœ—{% elif category == 'warning' %}âš {% else %}â„¹{% endif %}
     {{ message }}
   </div>
   {% endfor %}
@@ -307,7 +308,7 @@
 <footer class="border-t border-cyber-border mt-16 px-6 py-6">
   <div class="max-w-7xl mx-auto flex items-center justify-between">
     <span class="font-display text-xs text-gray-600 tracking-widest uppercase">Dragon Ball Z Cyber Arena</span>
-    <span class="font-mono text-xs text-gray-700">CTF Platform — Powered by Flask</span>
+    <span class="font-mono text-xs text-gray-700">CTF Platform â€” Powered by Flask</span>
   </div>
 </footer>
 
@@ -316,7 +317,7 @@
 <!-- Celebration Modal -->
 <div id="celebrationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm">
   <div class="ctf-card border-glow-gold p-8 max-w-md w-full mx-4 text-center animate-fade-in-up" id="celebrationCard">
-    <div id="celebrationIcon" class="text-6xl mb-4">🎯</div>
+    <div id="celebrationIcon" class="text-6xl mb-4">ðŸŽ¯</div>
     <div class="font-display text-xl font-bold text-yellow-400 mb-2">FLAG CAPTURED!</div>
     <div id="celebrationChallenge" class="font-mono text-orange-400 text-lg mb-1"></div>
     <div class="flex items-center justify-center gap-2 my-4">
@@ -326,10 +327,10 @@
     <div class="text-sm text-gray-400 mb-1">New team score:</div>
     <div class="font-mono text-2xl text-cyan-400" id="celebrationScore"></div>
     <div id="celebrationFirstBlood" class="hidden mt-3 font-display text-xs text-red-400 tracking-widest uppercase animate-pulse">
-      🩸 First Blood!
+      ðŸ©¸ First Blood!
     </div>
     <div id="celebrationBoss" class="hidden mt-2 text-sm text-yellow-300">Shenron stirs...</div>
-    <button onclick="closeCelebration()" class="btn-primary mt-6">Continue →</button>
+    <button onclick="closeCelebration()" class="btn-primary mt-6">Continue â†’</button>
   </div>
 </div>
 
@@ -344,7 +345,7 @@ function showCelebration(data) {
   }
   if (data.is_boss) {
     document.getElementById('celebrationBoss').classList.remove('hidden');
-    document.getElementById('celebrationIcon').textContent = '🐉';
+    document.getElementById('celebrationIcon').textContent = 'ðŸ‰';
     triggerShenron();
   }
   modal.classList.remove('hidden');
