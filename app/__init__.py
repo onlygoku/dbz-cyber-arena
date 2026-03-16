@@ -1,4 +1,4 @@
-import os
+﻿import os
 import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -116,7 +116,4 @@ def _bootstrap(app):
         db.session.commit()
         app.logger.info('Event state initialised.')
 
-    # Auto-import bundled challenges
-    challenges_dir = os.path.join(app.root_path, '..', 'challenges')
-    if os.path.isdir(challenges_dir):
-        import_all_challenges(challenges_dir)
+    # Auto-import disabled
