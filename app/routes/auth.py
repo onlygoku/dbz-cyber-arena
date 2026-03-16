@@ -126,3 +126,45 @@ def verify_email(token):
 @auth_bp.route('/unverified')
 def unverified():
     return render_template('auth/verify.html')
+
+@auth_bp.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if current_user.is_authenticated:
+        return redirect(url_for('challenges.list'))
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        user  = User.query.filter_by(email=email).first()
+        flash('If that email is registered you will receive a reset link shortly.', 'info')
+        if user and user.is_verified:
+            from app.services.email_service import send_password_reset_email
+            user.generate_reset_token()
+            db.session.commit()
+            send_password_reset_email(user)
+        return redirect(url_for('auth.login'))
+    return render_template('auth/forgot_password.html')
+
+
+@auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('challenges.list'))
+    user = User.query.filter_by(reset_token=token).first()
+    if not user or not user.is_reset_token_valid():
+        flash('This password reset link is invalid or has expired.', 'error')
+        return redirect(url_for('auth.forgot_password'))
+    if request.method == 'POST':
+        new_password     = request.form.get('new_password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        if len(new_password) < 8:
+            flash('Password must be at least 8 characters.', 'error')
+            return render_template('auth/reset_password.html', token=token)
+        if new_password != confirm_password:
+            flash('Passwords do not match.', 'error')
+            return render_template('auth/reset_password.html', token=token)
+        user.set_password(new_password)
+        user.reset_token        = None
+        user.reset_token_expiry = None
+        db.session.commit()
+        flash('Password reset successfully! You can now log in.', 'success')
+        return redirect(url_for('auth.login'))
+    return render_template('auth/reset_password.html', token=token)
