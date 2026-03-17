@@ -7,6 +7,8 @@
 
 <canvas id="particles"></canvas>
 
+<div class="lightning"></div>
+
 <div class="hero-dragon">
 
 <div class="shenron-aura"></div>
@@ -14,18 +16,19 @@
 <div class="orbit">
   <div class="orbit-inner">
 
-    <div class="dragonball ball1">★</div>
-    <div class="dragonball ball2">★★</div>
-    <div class="dragonball ball3">★★★</div>
-    <div class="dragonball ball4">★★★★</div>
-    <div class="dragonball ball5">★★★★★</div>
-    <div class="dragonball ball6">★★★★★★</div>
-    <div class="dragonball ball7">★★★★★★★</div>
+    <div class="dragonball ball1"><span>★</span></div>
+    <div class="dragonball ball2"><span>★★</span></div>
+    <div class="dragonball ball3"><span>★★★</span></div>
+    <div class="dragonball ball4"><span>★★★★</span></div>
+    <div class="dragonball ball5"><span>★★★★★</span></div>
+    <div class="dragonball ball6"><span>★★★★★★</span></div>
+    <div class="dragonball ball7"><span>★★★★★★★</span></div>
 
   </div>
 </div>
 
-<img src="{{ url_for('static', filename='img/dragon.png') }}" class="dragon">
+<img src="{{ url_for('static', filename='img/dragon.png') }}"
+     class="dragon-img">
 
 </div>
 
@@ -37,8 +40,15 @@
 <p>Capture The Flag Competition</p>
 
 <div class="hero-buttons">
-<a href="{{ url_for('auth.register') }}" class="btn-primary">Enter Arena</a>
-<a href="{{ url_for('auth.login') }}" class="btn-secondary">Login</a>
+
+<a href="{{ url_for('auth.register') }}" class="btn-primary">
+Enter Arena
+</a>
+
+<a href="{{ url_for('auth.login') }}" class="btn-secondary">
+Login
+</a>
+
 </div>
 
 </div>

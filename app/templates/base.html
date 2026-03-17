@@ -12,33 +12,35 @@
 
 </head>
 
-<body>
+<body class="bg-[#05060a] text-gray-200 overflow-x-hidden">
 
-<nav class="nav">
+<nav class="flex justify-between items-center px-6 py-4">
 
-<div class="logo">
+<div class="text-orange-400 font-bold tracking-widest">
 DRAGON BALL Z CYBER ARENA
 </div>
 
-<div class="nav-links">
+<div class="flex gap-4 items-center text-sm">
 
-<a href="{{ url_for('auth.index') }}">Home</a>
-<a href="{{ url_for('challenges.list') }}">Challenges</a>
-<a href="{{ url_for('scoreboard.index') }}">Scoreboard</a>
+<a href="{{ url_for('auth.index') }}" class="nav-link">Home</a>
+<a href="{{ url_for('challenges.list') }}" class="nav-link">Challenges</a>
+<a href="{{ url_for('scoreboard.index') }}" class="nav-link">Scoreboard</a>
 
 {% if current_user.is_authenticated %}
-<a href="{{ url_for('team.dashboard') }}">Team</a>
-<a href="{{ url_for('profile.edit') }}">Profile</a>
+<a href="{{ url_for('team.dashboard') }}" class="nav-link">Team</a>
+<a href="{{ url_for('profile.edit') }}" class="nav-link">Profile</a>
 {% else %}
-<a href="{{ url_for('auth.login') }}" class="btn login-btn">Login</a>
-<a href="{{ url_for('auth.register') }}" class="btn register-btn">Register</a>
+<a href="{{ url_for('auth.login') }}" class="nav-btn login-btn">Login</a>
+<a href="{{ url_for('auth.register') }}" class="nav-btn register-btn">Register</a>
 {% endif %}
 
 </div>
 
 </nav>
 
+<main>
 {% block content %}{% endblock %}
+</main>
 
 <script src="{{ url_for('static', filename='js/particles.js') }}"></script>
 
