@@ -1,5 +1,6 @@
 ﻿import os
 import logging
+import importlib
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
@@ -18,6 +19,10 @@ def create_app(config_object=None):
     app = Flask(__name__)
 
     if config_object:
+        if isinstance(config_object, str):
+            module_name, class_name = config_object.rsplit('.', 1)
+            module = importlib.import_module(module_name)
+            config_object = getattr(module, class_name)
         app.config.from_object(config_object)
     else:
         from config import Config
@@ -88,35 +93,40 @@ def create_app(config_object=None):
             pass
         _bootstrap(app)
 
+    return app
+
+
 def _bootstrap(app):
     """Auto-create admin and seed event state on first run."""
     from app.models.user import User
     from app.models.event import EventState
-    from app.services.challenge_import import import_all_challenges
 
     # Create admin
     admin_email = app.config.get('ADMIN_EMAIL', 'admin@ctf.local')
     admin_pass  = app.config.get('ADMIN_PASSWORD', 'ChangeMe123!')
-    if not User.query.filter_by(email=admin_email).first():
-        admin = User(
-            username='admin',
-            email=admin_email,
-            is_admin=True,
-            is_verified=True,
-        )
-        admin.set_password(admin_pass)
-        db.session.add(admin)
-        db.session.commit()
-        app.logger.info(f'Admin account created: {admin_email}')
+    try:
+        if not User.query.filter_by(email=admin_email).first():
+            admin = User(
+                username='admin',
+                email=admin_email,
+                is_admin=True,
+                is_verified=True,
+            )
+            admin.set_password(admin_pass)
+            db.session.add(admin)
+            db.session.commit()
+            app.logger.info(f'Admin account created: {admin_email}')
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f'Bootstrap admin error: {e}')
 
     # Seed event state
-    if not EventState.query.first():
-        state = EventState()
-        db.session.add(state)
-        db.session.commit()
-        app.logger.info('Event state initialised.')
-
-    # Auto-import disabled — add challenges via Admin panel
-    # challenges_dir = os.path.join(app.root_path, '..', 'challenges')
-    # if os.path.isdir(challenges_dir):
-    #     import_all_challenges(challenges_dir)
+    try:
+        if not EventState.query.first():
+            state = EventState()
+            db.session.add(state)
+            db.session.commit()
+            app.logger.info('Event state initialised.')
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f'Bootstrap event state error: {e}')
