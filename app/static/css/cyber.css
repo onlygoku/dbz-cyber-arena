@@ -1,9 +1,10 @@
-img{
-  display:block;
-}
 body{
   margin:0;
   font-family:sans-serif;
+}
+
+img{
+  display:block;
 }
 
 /* NAVBAR */
@@ -12,6 +13,45 @@ nav{
   z-index:100;
   backdrop-filter:blur(8px);
   background:rgba(5,6,10,0.6);
+}
+
+.nav-link{
+  color:#ccc;
+  transition:.2s;
+}
+
+.nav-link:hover{
+  color:#ff7b00;
+}
+
+/* NAV BUTTONS */
+.nav-btn{
+  padding:8px 18px;
+  border-radius:6px;
+  font-weight:600;
+  transition:.25s;
+}
+
+.login-btn{
+  border:1px solid #ff7b00;
+  color:#ff7b00;
+}
+
+.login-btn:hover{
+  background:#ff7b00;
+  color:black;
+  box-shadow:0 0 15px rgba(255,140,0,0.8);
+}
+
+.register-btn{
+  background:linear-gradient(135deg,#ff7b00,#ff3c00);
+  color:white;
+  box-shadow:0 0 15px rgba(255,120,0,0.6);
+}
+
+.register-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 0 30px rgba(255,120,0,1);
 }
 
 /* HERO */
@@ -33,16 +73,18 @@ nav{
   background-size:40px 40px;
   z-index:0;
 }
+
+/* FIX BOTTOM STRIP */
 .hero-bg::after{
   content:"";
   position:absolute;
   bottom:0;
-  left:0;
   width:100%;
   height:20px;
   background:#05060a;
   z-index:20;
 }
+
 /* PARTICLES */
 #particles{
   position:absolute;
@@ -53,13 +95,14 @@ nav{
 /* DRAGON */
 .hero-dragon{
   position:relative;
-  width:500px;
+  width:520px;
   margin:auto;
+  margin-top:-60px;
   z-index:5;
 }
 
-/* GLOW */
-.dragon-glow{
+.dragon-img{
+  width:100%;
   filter:drop-shadow(0 0 60px rgba(255,150,0,0.7));
 }
 
@@ -115,7 +158,7 @@ nav{
   display:flex;
   align-items:center;
   justify-content:center;
-  color:#fff;
+  color:white;
   font-size:12px;
   transition:.3s;
 }
@@ -134,30 +177,64 @@ nav{
 .ball6{transform:rotate(255deg) translate(260px)}
 .ball7{transform:rotate(306deg) translate(260px)}
 
-/* LIGHTNING */
-.lightning{
-  position:absolute;
-  inset:0;
-  background:radial-gradient(circle at 40% 40%, rgba(255,200,0,0.15), transparent 60%);
-  animation:flash 6s infinite;
+/* TEXT */
+.hero-text{
+  text-align:center;
+  margin-top:-40px;
+  position:relative;
+  z-index:10;
 }
 
-@keyframes flash{
-  0%,95%,100%{opacity:0}
-  96%{opacity:1}
-  97%{opacity:0}
+.hero-text h1{
+  font-size:48px;
+  font-weight:900;
+  color:#ff7b00;
+  text-shadow:0 0 20px rgba(255,120,0,0.5);
+}
+
+.hero-text h2{
+  font-size:28px;
+  color:#ffd000;
+  margin-bottom:10px;
+}
+
+.hero-text p{
+  color:#aaa;
+  margin-bottom:30px;
 }
 
 /* BUTTONS */
+.hero-buttons{
+  display:flex;
+  justify-content:center;
+  gap:16px;
+}
+
 .btn-primary{
   background:linear-gradient(135deg,#ff7b00,#ff3c00);
-  padding:10px 20px;
-  border-radius:6px;
+  padding:14px 30px;
+  border-radius:8px;
   color:white;
+  font-weight:bold;
+  box-shadow:0 0 20px rgba(255,120,0,0.6);
+  transition:.3s;
+}
+
+.btn-primary:hover{
+  transform:translateY(-3px);
+  box-shadow:0 0 40px rgba(255,120,0,1);
 }
 
 .btn-secondary{
-  border:1px solid orange;
-  padding:10px 20px;
-  border-radius:6px;
+  border:2px solid #ff7b00;
+  padding:14px 30px;
+  border-radius:8px;
+  color:#ff7b00;
+  font-weight:bold;
+  transition:.3s;
+}
+
+.btn-secondary:hover{
+  background:#ff7b00;
+  color:black;
 }

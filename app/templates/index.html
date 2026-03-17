@@ -28,25 +28,18 @@
 </div>
 
 <img src="{{ url_for('static', filename='img/dragon.png') }}"
-     class="w-full dragon-glow">
+     class="dragon-img">
 
 </div>
 
-<div class="text-center mt-16">
+<div class="hero-text">
 
-<h1 class="text-5xl font-black text-orange-400 mb-4">
-DRAGON BALL Z
-</h1>
+<h1>DRAGON BALL Z</h1>
+<h2>CYBER ARENA</h2>
 
-<h2 class="text-3xl text-yellow-400 mb-6">
-CYBER ARENA
-</h2>
+<p>Capture The Flag Competition</p>
 
-<p class="text-gray-400 mb-10">
-Capture The Flag Competition
-</p>
-
-<div class="flex gap-4 justify-center">
+<div class="hero-buttons">
 
 <a href="{{ url_for('auth.register') }}" class="btn-primary">
 Enter Arena

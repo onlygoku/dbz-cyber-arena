@@ -20,17 +20,18 @@
 DRAGON BALL Z CYBER ARENA
 </div>
 
-<div class="flex gap-6 text-sm">
+<div class="flex gap-4 items-center text-sm">
 
-<a href="{{ url_for('auth.index') }}" class="hover:text-orange-400">Home</a>
-<a href="{{ url_for('challenges.list') }}" class="hover:text-orange-400">Challenges</a>
-<a href="{{ url_for('scoreboard.index') }}" class="hover:text-orange-400">Scoreboard</a>
+<a href="{{ url_for('auth.index') }}" class="nav-link">Home</a>
+<a href="{{ url_for('challenges.list') }}" class="nav-link">Challenges</a>
+<a href="{{ url_for('scoreboard.index') }}" class="nav-link">Scoreboard</a>
 
 {% if current_user.is_authenticated %}
-<a href="{{ url_for('team.dashboard') }}" class="hover:text-orange-400">Team</a>
-<a href="{{ url_for('profile.edit') }}" class="hover:text-orange-400">Profile</a>
+<a href="{{ url_for('team.dashboard') }}" class="nav-link">Team</a>
+<a href="{{ url_for('profile.edit') }}" class="nav-link">Profile</a>
 {% else %}
-<a href="{{ url_for('auth.login') }}" class="hover:text-orange-400">Login</a>
+<a href="{{ url_for('auth.login') }}" class="nav-btn login-btn">Login</a>
+<a href="{{ url_for('auth.register') }}" class="nav-btn register-btn">Register</a>
 {% endif %}
 
 </div>
