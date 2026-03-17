@@ -1,148 +1,151 @@
-/* =========================
-   HERO BACKGROUND
-========================= */
-
-.hero-bg{
-background:
-radial-gradient(circle at 30% 50%, rgba(249,115,22,0.15), transparent 60%),
-radial-gradient(circle at 70% 20%, rgba(251,191,36,0.08), transparent 60%),
-#0a0a0f;
+body{
+  margin:0;
+  font-family:sans-serif;
 }
 
-/* cyber grid */
-
-.grid-lines{
-background-image:
-linear-gradient(rgba(249,115,22,0.04) 1px, transparent 1px),
-linear-gradient(90deg, rgba(249,115,22,0.04) 1px, transparent 1px);
-background-size:40px 40px;
-}
-
-/* =========================
-   SHENRON CONTAINER
-========================= */
-
-.hero-dragon{
-position:relative;
-width:520px;
-margin:0 auto;
-}
-
-/* glow around shenron */
-
-.dragon-glow{
-filter:drop-shadow(0 0 60px rgba(255,150,0,0.7));
-}
-
-/* =========================
-   SHENRON ENERGY AURA
-========================= */
-
-.shenron-aura{
-position:absolute;
-width:650px;
-height:650px;
-background:radial-gradient(circle, rgba(255,140,0,0.35) 0%, transparent 70%);
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-animation:auraPulse 4s ease-in-out infinite;
-pointer-events:none;
-}
-
-@keyframes auraPulse{
-
-0%{
-opacity:0.4;
-transform:translate(-50%,-50%) scale(1);
-}
-
-50%{
-opacity:0.9;
-transform:translate(-50%,-50%) scale(1.12);
-}
-
-100%{
-opacity:0.4;
-transform:translate(-50%,-50%) scale(1);
-}
-
-}
-
-
-/* =========================
-   STATS BOX
-========================= */
-
-.stat-box{
-background:rgba(15,15,26,0.85);
-border:1px solid #1e1e3a;
-border-radius:6px;
-padding:1.5rem;
-text-align:center;
-position:relative;
-overflow:hidden;
-}
-
-.stat-box::before{
-content:'';
-position:absolute;
-top:0;
-left:0;
-right:0;
-height:2px;
-background:linear-gradient(90deg,transparent,#f97316,transparent);
-}
-
-/* =========================
-   FEATURE LIST
-========================= */
-
-.feature-line{
-display:flex;
-align-items:flex-start;
-gap:12px;
-padding:0.75rem 0;
-border-bottom:1px solid rgba(30,30,58,0.5);
-}
-
-/* =========================
-   NAVBAR GLOW
-========================= */
-
+/* NAVBAR */
 nav{
-box-shadow:0 0 25px rgba(255,140,0,0.25);
-border-bottom:1px solid rgba(255,140,0,0.4);
+  position:relative;
+  z-index:100;
+  backdrop-filter:blur(8px);
+  background:rgba(5,6,10,0.6);
 }
 
-/* =========================
-   BUTTON EFFECTS
-========================= */
+/* HERO */
+.hero-bg{
+  position:relative;
+  min-height:100vh;
+  overflow:hidden;
+  background:#05060a;
+}
 
+/* GRID */
+.hero-bg::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(255,120,0,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,120,0,0.05) 1px, transparent 1px);
+  background-size:40px 40px;
+  z-index:0;
+}
+
+/* PARTICLES */
+#particles{
+  position:absolute;
+  inset:0;
+  z-index:1;
+}
+
+/* DRAGON */
+.hero-dragon{
+  position:relative;
+  width:500px;
+  margin:auto;
+  z-index:5;
+}
+
+/* GLOW */
+.dragon-glow{
+  filter:drop-shadow(0 0 60px rgba(255,150,0,0.7));
+}
+
+/* AURA */
+.shenron-aura{
+  position:absolute;
+  width:700px;
+  height:700px;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle, rgba(255,150,0,0.35), transparent 70%);
+  animation:aura 4s infinite;
+}
+
+@keyframes aura{
+  0%,100%{opacity:.4; transform:translate(-50%,-50%) scale(1);}
+  50%{opacity:.9; transform:translate(-50%,-50%) scale(1.2);}
+}
+
+/* ORBIT */
+.orbit{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:600px;
+  height:600px;
+}
+
+.orbit-inner{
+  width:100%;
+  height:100%;
+  animation:spin 20s linear infinite;
+}
+
+@keyframes spin{
+  from{transform:rotate(0)}
+  to{transform:rotate(360deg)}
+}
+
+/* BALLS */
+.dragonball{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:65px;
+  height:65px;
+  margin:-32px;
+  border-radius:50%;
+  background:radial-gradient(circle,#ffd000,#ff6a00);
+  box-shadow:0 0 25px rgba(255,150,0,.9);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:12px;
+  transition:.3s;
+}
+
+.dragonball:hover{
+  transform:scale(1.2);
+  box-shadow:0 0 40px rgba(255,200,0,1);
+}
+
+/* POSITIONS */
+.ball1{transform:rotate(0deg) translate(260px)}
+.ball2{transform:rotate(51deg) translate(260px)}
+.ball3{transform:rotate(102deg) translate(260px)}
+.ball4{transform:rotate(153deg) translate(260px)}
+.ball5{transform:rotate(204deg) translate(260px)}
+.ball6{transform:rotate(255deg) translate(260px)}
+.ball7{transform:rotate(306deg) translate(260px)}
+
+/* LIGHTNING */
+.lightning{
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle at 40% 40%, rgba(255,200,0,0.15), transparent 60%);
+  animation:flash 6s infinite;
+}
+
+@keyframes flash{
+  0%,95%,100%{opacity:0}
+  96%{opacity:1}
+  97%{opacity:0}
+}
+
+/* BUTTONS */
 .btn-primary{
-background:linear-gradient(135deg,#ff6a00,#ff3c00);
-color:white;
-border-radius:6px;
-padding:10px 22px;
-font-weight:bold;
-transition:all .25s ease;
-box-shadow:0 0 15px rgba(255,120,0,0.5);
-}
-
-.btn-primary:hover{
-transform:translateY(-2px);
-box-shadow:0 0 25px rgba(255,120,0,0.9);
+  background:linear-gradient(135deg,#ff7b00,#ff3c00);
+  padding:10px 20px;
+  border-radius:6px;
+  color:white;
 }
 
 .btn-secondary{
-border:1px solid #ff6a00;
-padding:10px 22px;
-border-radius:6px;
-transition:all .25s ease;
-}
-
-.btn-secondary:hover{
-background:#ff6a00;
-color:white;
-box-shadow:0 0 15px rgba(255,120,0,0.8);
+  border:1px solid orange;
+  padding:10px 20px;
+  border-radius:6px;
 }
