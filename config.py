@@ -66,7 +66,7 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    MAIL_SUPPRESS_SEND = True
+    
 
 
 class ProductionConfig(Config):

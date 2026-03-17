@@ -59,9 +59,12 @@ def _get_existing_files(challenge_id: int) -> list:
     return []
 
 
+# Replace with this:
 @admin_bp.before_request
-@login_required
 def require_admin():
+    if not current_user.is_authenticated:
+        from flask import redirect, url_for
+        return redirect(url_for('auth.login'))
     if not current_user.is_admin:
         from flask import abort
         abort(403)
