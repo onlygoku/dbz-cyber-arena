@@ -82,11 +82,11 @@ def create_app(config_object=None):
     logging.basicConfig(level=logging.INFO)
 
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception:
+            pass
         _bootstrap(app)
-
-    return app
-
 
 def _bootstrap(app):
     """Auto-create admin and seed event state on first run."""
