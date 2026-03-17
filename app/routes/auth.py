@@ -58,6 +58,12 @@ def register():
         db.session.add(user)
         db.session.commit()
 
+        current_app.logger.info(f'Token: {user.verify_token}')
+        current_app.logger.info(f'Mail server: {current_app.config.get("MAIL_SERVER")}')
+        current_app.logger.info(f'Mail user: {current_app.config.get("MAIL_USERNAME")}')
+        current_app.logger.info(f'Suppress: {current_app.config.get("MAIL_SUPPRESS_SEND")}')
+        
+        
         suppress = current_app.config.get('MAIL_SUPPRESS_SEND', False)
         if not suppress:
             sent = send_verification_email(user)
