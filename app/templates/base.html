@@ -1,375 +1,51 @@
-﻿<!DOCTYPE html>
-<html lang="en" class="dark">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{% block title %}{% endblock %} | Dragon Ball Z Cyber Arena</title>
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/cyber.css') }}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            display: ['Orbitron', 'sans-serif'],
-            body:    ['Rajdhani', 'sans-serif'],
-            mono:    ['Share Tech Mono', 'monospace'],
-          },
-          colors: {
-            cyber: {
-              orange:  '#f97316',
-              gold:    '#fbbf24',
-              red:     '#ef4444',
-              blue:    '#3b82f6',
-              cyan:    '#06b6d4',
-              purple:  '#8b5cf6',
-              dark:    '#0a0a0f',
-              darker:  '#050508',
-              card:    '#0f0f1a',
-              border:  '#1e1e3a',
-              muted:   '#6b7280',
-            }
-          },
-          boxShadow: {
-            'glow-orange': '0 0 20px rgba(249,115,22,0.4)',
-            'glow-gold':   '0 0 20px rgba(251,191,36,0.4)',
-            'glow-cyan':   '0 0 20px rgba(6,182,212,0.4)',
-          }
-        }
-      }
-    }
-  </script>
+<title>{% block title %}DBZ Cyber Arena{% endblock %}</title>
 
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      background-color: #0a0a0f;
-      color: #e2e8f0;
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 16px;
-      min-height: 100vh;
-    }
-    .font-display { font-family: 'Orbitron', sans-serif; }
-    .font-mono    { font-family: 'Share Tech Mono', monospace; }
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cyber.css') }}">
+<script src="https://cdn.tailwindcss.com"></script>
 
-    /* Scanline overlay */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,0.05) 2px,
-        rgba(0,0,0,0.05) 4px
-      );
-      z-index: 9999;
-    }
+{% block extra_head %}{% endblock %}
 
-    /* Glowing borders */
-    .border-glow-orange { border-color: #f97316; box-shadow: 0 0 8px rgba(249,115,22,0.3); }
-    .border-glow-gold   { border-color: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.3); }
-    .border-glow-cyan   { border-color: #06b6d4; box-shadow: 0 0 8px rgba(6,182,212,0.3); }
-
-    /* Nav */
-    nav.ctf-nav {
-      background: rgba(5,5,8,0.95);
-      border-bottom: 1px solid #1e1e3a;
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    /* Cards */
-    .ctf-card {
-      background: #0f0f1a;
-      border: 1px solid #1e1e3a;
-      border-radius: 4px;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .ctf-card:hover { border-color: #f97316; box-shadow: 0 0 12px rgba(249,115,22,0.15); }
-
-    /* Buttons */
-    .btn-primary {
-      background: linear-gradient(135deg, #f97316, #dc2626);
-      color: #fff;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 0.6rem 1.4rem;
-      border: none;
-      border-radius: 2px;
-      cursor: pointer;
-      transition: opacity 0.2s, box-shadow 0.2s;
-      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-    }
-    .btn-primary:hover { opacity: 0.9; box-shadow: 0 0 16px rgba(249,115,22,0.5); }
-
-    .btn-secondary {
-      background: transparent;
-      color: #f97316;
-      border: 1px solid #f97316;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 0.5rem 1.2rem;
-      border-radius: 2px;
-      cursor: pointer;
-      transition: background 0.2s, box-shadow 0.2s;
-    }
-    .btn-secondary:hover { background: rgba(249,115,22,0.1); box-shadow: 0 0 10px rgba(249,115,22,0.3); }
-
-    /* Inputs */
-    .ctf-input {
-      background: #05050a;
-      border: 1px solid #1e1e3a;
-      color: #e2e8f0;
-      border-radius: 2px;
-      padding: 0.6rem 0.9rem;
-      font-family: 'Share Tech Mono', monospace;
-      width: 100%;
-      transition: border-color 0.2s;
-    }
-    .ctf-input:focus { outline: none; border-color: #f97316; box-shadow: 0 0 8px rgba(249,115,22,0.2); }
-
-    /* Flash messages */
-    .flash-success { background: rgba(34,197,94,0.12); border: 1px solid #22c55e; color: #4ade80; }
-    .flash-error   { background: rgba(239,68,68,0.12);  border: 1px solid #ef4444; color: #f87171; }
-    .flash-warning { background: rgba(251,191,36,0.12); border: 1px solid #fbbf24; color: #fcd34d; }
-    .flash-info    { background: rgba(6,182,212,0.12);  border: 1px solid #06b6d4; color: #67e8f9; }
-
-    /* Difficulty badges */
-    .diff-easy    { background: rgba(34,197,94,0.15);  color: #4ade80; border: 1px solid rgba(34,197,94,0.4); }
-    .diff-medium  { background: rgba(251,191,36,0.15); color: #fcd34d; border: 1px solid rgba(251,191,36,0.4); }
-    .diff-hard    { background: rgba(249,115,22,0.15); color: #fb923c; border: 1px solid rgba(249,115,22,0.4); }
-    .diff-extreme { background: rgba(239,68,68,0.15);  color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
-
-    /* Category badge */
-    .cat-badge {
-      font-size: 0.65rem;
-      font-family: 'Orbitron', sans-serif;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 2px 8px;
-      border-radius: 2px;
-      background: rgba(139,92,246,0.15);
-      color: #a78bfa;
-      border: 1px solid rgba(139,92,246,0.3);
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #050508; }
-    ::-webkit-scrollbar-thumb { background: #1e1e3a; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #f97316; }
-
-    /* Announcement banner */
-    .announcement-bar {
-      background: linear-gradient(90deg, rgba(249,115,22,0.15), rgba(251,191,36,0.1), rgba(249,115,22,0.15));
-      border-bottom: 1px solid rgba(249,115,22,0.4);
-      animation: slideAnnounce 30s linear infinite;
-    }
-
-    /* Animations */
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 8px rgba(249,115,22,0.3); }
-      50%       { box-shadow: 0 0 20px rgba(249,115,22,0.7); }
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-in-up { animation: fadeInUp 0.4s ease forwards; }
-
-    /* Table */
-    .ctf-table { width: 100%; border-collapse: collapse; }
-    .ctf-table th {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #6b7280;
-      border-bottom: 1px solid #1e1e3a;
-      padding: 0.75rem 1rem;
-      text-align: left;
-    }
-    .ctf-table td {
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid #0f0f1a;
-      font-size: 0.9rem;
-    }
-    .ctf-table tr:hover td { background: rgba(249,115,22,0.04); }
-
-    /* Solved overlay on challenge card */
-    .challenge-solved { opacity: 0.6; }
-    .challenge-solved::after {
-      content: 'âœ“ SOLVED';
-      position: absolute;
-      top: 8px; right: 8px;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.55rem;
-      letter-spacing: 0.1em;
-      color: #4ade80;
-      border: 1px solid #4ade80;
-      padding: 2px 6px;
-    }
-    .challenge-card { position: relative; }
-  </style>
-
-  {% block extra_head %}{% endblock %}
 </head>
-<body>
 
-<!-- Announcement Banner -->
-{% set state = namespace(obj=None) %}
-{% if g_state and g_state.announcement %}
-<div class="announcement-bar px-4 py-2 text-center text-sm font-mono text-yellow-400">
-  ðŸ“¡ {{ g_state.announcement }}
+<body class="bg-[#05060a] text-gray-200 overflow-x-hidden">
+
+<nav class="flex justify-between items-center px-6 py-4 border-b border-orange-500 shadow-[0_0_25px_rgba(255,120,0,0.3)]">
+
+<div class="text-orange-400 font-bold text-lg tracking-widest">
+DRAGON BALL Z CYBER ARENA
 </div>
+
+<div class="flex gap-6 text-sm">
+
+<a href="{{ url_for('index') }}" class="hover:text-orange-400">Home</a>
+<a href="{{ url_for('challenges.list') }}" class="hover:text-orange-400">Challenges</a>
+<a href="{{ url_for('scoreboard.index') }}" class="hover:text-orange-400">Scoreboard</a>
+
+{% if current_user.is_authenticated %}
+<a href="{{ url_for('team.dashboard') }}" class="hover:text-orange-400">Team</a>
+<a href="{{ url_for('profile.edit') }}" class="hover:text-orange-400">Profile</a>
+{% else %}
+<a href="{{ url_for('auth.login') }}" class="hover:text-orange-400">Login</a>
 {% endif %}
 
-<!-- Navigation -->
-<nav class="ctf-nav px-6 py-3">
-  <div class="max-w-7xl mx-auto flex items-center justify-between">
+</div>
 
-    <!-- Logo -->
-    <a href="{{ url_for('auth.index') }}" class="flex items-center gap-3">
-      <span class="text-2xl">ðŸ‰</span>
-      <div>
-        <div class="font-display text-sm font-bold text-orange-400 leading-none">DRAGON BALL Z</div>
-        <div class="font-display text-xs text-yellow-400 leading-none tracking-widest">CYBER ARENA</div>
-      </div>
-    </a>
-
-    <!-- Nav links -->
-    <div class="flex items-center gap-6">
-      {% if current_user.is_authenticated %}
-        <a href="{{ url_for('challenges.list') }}" class="font-display text-xs uppercase tracking-widest text-gray-300 hover:text-orange-400 transition-colors">
-          Challenges
-        </a>
-        <a href="{{ url_for('scoreboard.index') }}" class="font-display text-xs uppercase tracking-widest text-gray-300 hover:text-orange-400 transition-colors">
-          Scoreboard
-        </a>
-        <a href="{{ url_for('team.dashboard') }}" class="font-display text-xs uppercase tracking-widest text-gray-300 hover:text-orange-400 transition-colors">
-          Team
-        </a>
-        {% if current_user.is_admin %}
-        <a href="{{ url_for('admin.dashboard') }}" class="font-display text-xs uppercase tracking-widest text-purple-400 hover:text-purple-300 transition-colors">
-          Admin
-        </a>
-        {% endif %}
-        <div class="h-4 w-px bg-gray-700"></div>
-        <span class="font-mono text-xs text-cyan-400">{{ current_user.username }}</span>
-        <a href="{{ url_for('profile.edit') }}" class="font-display text-xs uppercase tracking-widest text-gray-300 hover:text-orange-400 transition-colors">
-          Profile
-        </a>
-        <a href="{{ url_for('auth.logout') }}" class="btn-secondary text-xs">Logout</a>
-      {% else %}
-        <a href="{{ url_for('auth.login') }}" class="btn-secondary">Login</a>
-        <a href="{{ url_for('auth.register') }}" class="btn-primary">Register</a>
-      {% endif %}
-    </div>
-  </div>
 </nav>
 
-<!-- Flash Messages -->
-{% with messages = get_flashed_messages(with_categories=True) %}
-{% if messages %}
-<div class="max-w-7xl mx-auto px-6 pt-4 space-y-2">
-  {% for category, message in messages %}
-  <div class="flash-{{ category }} rounded px-4 py-3 text-sm font-mono flex items-center gap-2 animate-fade-in-up">
-    {% if category == 'success' %}âœ“{% elif category == 'error' %}âœ—{% elif category == 'warning' %}âš {% else %}â„¹{% endif %}
-    {{ message }}
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-{% endwith %}
+<main class="px-6">
 
-<!-- Main Content -->
-<main class="max-w-7xl mx-auto px-6 py-8">
-  {% block content %}{% endblock %}
+{% block content %}{% endblock %}
+
 </main>
 
-<!-- Footer -->
-<footer class="border-t border-cyber-border mt-16 px-6 py-6">
-  <div class="max-w-7xl mx-auto flex items-center justify-between">
-    <span class="font-display text-xs text-gray-600 tracking-widest uppercase">Dragon Ball Z Cyber Arena</span>
-    <span class="font-mono text-xs text-gray-700">CTF Platform â€” Powered by Flask</span>
-  </div>
-</footer>
+<script src="{{ url_for('static', filename='js/shenron.js') }}"></script>
 
-{% block scripts %}{% endblock %}
-
-<!-- Celebration Modal -->
-<div id="celebrationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm">
-  <div class="ctf-card border-glow-gold p-8 max-w-md w-full mx-4 text-center animate-fade-in-up" id="celebrationCard">
-    <div id="celebrationIcon" class="text-6xl mb-4">ðŸŽ¯</div>
-    <div class="font-display text-xl font-bold text-yellow-400 mb-2">FLAG CAPTURED!</div>
-    <div id="celebrationChallenge" class="font-mono text-orange-400 text-lg mb-1"></div>
-    <div class="flex items-center justify-center gap-2 my-4">
-      <span class="font-display text-3xl font-black text-green-400" id="celebrationPoints"></span>
-      <span class="font-display text-sm text-gray-400">POINTS</span>
-    </div>
-    <div class="text-sm text-gray-400 mb-1">New team score:</div>
-    <div class="font-mono text-2xl text-cyan-400" id="celebrationScore"></div>
-    <div id="celebrationFirstBlood" class="hidden mt-3 font-display text-xs text-red-400 tracking-widest uppercase animate-pulse">
-      ðŸ©¸ First Blood!
-    </div>
-    <div id="celebrationBoss" class="hidden mt-2 text-sm text-yellow-300">Shenron stirs...</div>
-    <button onclick="closeCelebration()" class="btn-primary mt-6">Continue â†’</button>
-  </div>
-</div>
-
-<script>
-function showCelebration(data) {
-  const modal = document.getElementById('celebrationModal');
-  document.getElementById('celebrationChallenge').textContent = data.challenge_name;
-  document.getElementById('celebrationPoints').textContent = '+' + data.points;
-  document.getElementById('celebrationScore').textContent = data.new_score;
-  if (data.is_first_blood) {
-    document.getElementById('celebrationFirstBlood').classList.remove('hidden');
-  }
-  if (data.is_boss) {
-    document.getElementById('celebrationBoss').classList.remove('hidden');
-    document.getElementById('celebrationIcon').textContent = 'ðŸ‰';
-    triggerShenron();
-  }
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
-}
-
-function closeCelebration() {
-  const modal = document.getElementById('celebrationModal');
-  modal.classList.add('hidden');
-  modal.classList.remove('flex');
-}
-
-// Poll for announcements
-setInterval(async () => {
-  try {
-    const r = await fetch('/api/event-state');
-    const d = await r.json();
-    // Could update announcement bar here
-  } catch(e) {}
-}, 30000);
-</script>
-
-{% block modals %}{% endblock %}
 </body>
 </html>
-

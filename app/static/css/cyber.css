@@ -69,52 +69,6 @@ transform:translate(-50%,-50%) scale(1);
 
 }
 
-/* =========================
-   DRAGON BALLS
-========================= */
-
-.dragonball{
-position:absolute;
-width:70px;
-height:70px;
-border-radius:50%;
-background:radial-gradient(circle,#ffcc00,#ff5a00);
-box-shadow:0 0 35px rgba(255,150,0,0.9);
-display:flex;
-align-items:center;
-justify-content:center;
-font-weight:bold;
-color:white;
-font-size:20px;
-animation:float 6s ease-in-out infinite;
-}
-
-/* positions around shenron */
-
-.ball1{top:-40px; left:40%}
-.ball2{top:90px; right:-40px}
-.ball3{top:220px; right:-60px}
-.ball4{bottom:140px; right:-30px}
-.ball5{bottom:40px; left:45%}
-.ball6{top:240px; left:-60px}
-
-/* floating animation */
-
-@keyframes float{
-
-0%{
-transform:translateY(0);
-}
-
-50%{
-transform:translateY(-18px);
-}
-
-100%{
-transform:translateY(0);
-}
-
-}
 
 /* =========================
    STATS BOX
