@@ -33,10 +33,13 @@ class Config:
     MAIL_SERVER   = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
     MAIL_PORT     = int(os.environ.get('MAIL_PORT', 587))
     MAIL_USE_TLS  = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
+    MAIL_USE_SSL  = False
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME', '')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'ctf@arena.local')
     MAIL_SUPPRESS_SEND = os.environ.get('MAIL_SUPPRESS_SEND', 'False').lower() == 'true'
+    MAIL_TIMEOUT = 10  # don't hang forever if Gmail is slow
+
 
     # CTF Settings
     FLAG_PREFIX          = os.environ.get('FLAG_PREFIX', 'THA')

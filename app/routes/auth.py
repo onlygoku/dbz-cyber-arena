@@ -62,25 +62,32 @@ def register():
         current_app.logger.info(f'Mail server: {current_app.config.get("MAIL_SERVER")}')
         current_app.logger.info(f'Mail user: {current_app.config.get("MAIL_USERNAME")}')
         current_app.logger.info(f'Suppress: {current_app.config.get("MAIL_SUPPRESS_SEND")}')
-        
-        
+
         suppress = current_app.config.get('MAIL_SUPPRESS_SEND', False)
         if not suppress:
-            sent = send_verification_email(user)
-            if sent:
-                flash('Registration successful! Check your email to verify your account.', 'success')
-            else:
-                flash('Registration successful! However we could not send the verification email. Contact the admin.', 'warning')
-        else:
-            # Dev mode: auto-verify
-            user.is_verified = True
-            db.session.commit()
-            flash('Registration successful! (Dev mode: auto-verified)', 'success')
+            import threading
+            app_instance = current_app._get_current_object()
+            user_id = user.id
 
-        return redirect(url_for('auth.login'))
+        def send_async_email(app, uid):
+            with app.app_context():
+                from app.models.user import User as U
+                u = U.query.get(uid)
+                if u:
+                    send_verification_email(u)
 
-    return render_template('auth/register.html')
+        thread = threading.Thread(target=send_async_email, args=(app_instance, user_id))
+        thread.daemon = True
+        thread.start()
 
+        flash('Registration successful! Check your email to verify your account.', 'success')
+    else:
+    # Dev mode: auto-verify
+        user.is_verified = True
+        db.session.commit()
+        flash('Registration successful! (Dev mode: auto-verified)', 'success')
+
+    return redirect(url_for('auth.login'))
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
