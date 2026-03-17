@@ -105,7 +105,7 @@ window.addEventListener('load', () => {
     </div>
     <div class="text-right">
       <div class="font-display font-black text-4xl {% if challenge.is_boss %}text-yellow-400{% else %}text-orange-400{% endif %}">
-        {{ challenge.points }}
+        {{ challenge.current_points() }}
       </div>
       <div class="font-display text-xs text-gray-500 uppercase tracking-widest">points</div>
     </div>
@@ -120,6 +120,34 @@ window.addEventListener('load', () => {
       <h3 class="font-display text-xs text-gray-500 uppercase tracking-widest mb-4">Description</h3>
       <div class="desc-body">{{ challenge.description | safe }}</div>
     </div>
+
+    <!-- Files for download -->
+    {% if challenge.files_json %}
+    {% set files = challenge.files_json | tojson | fromjson %}
+    {% if files %}
+    <div class="ctf-card p-6">
+      <h3 class="font-display text-xs text-gray-500 uppercase tracking-widest mb-4">
+        📎 Challenge Files
+      </h3>
+      <div class="space-y-2">
+        {% for file in files %}
+        <a href="{{ url_for('static', filename='uploads/challenges/' ~ challenge.id ~ '/' ~ file.name) }}"
+           download
+           class="flex items-center justify-between bg-black/30 border border-gray-800 hover:border-cyan-700 rounded px-4 py-2.5 transition group">
+          <div class="flex items-center gap-3">
+            <span class="text-cyan-400 text-lg">📄</span>
+            <span class="font-mono text-sm text-cyan-300 group-hover:text-cyan-200">{{ file.name }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-xs text-gray-600">{{ file.size }}</span>
+            <span class="font-display text-xs text-gray-600 uppercase tracking-widest group-hover:text-cyan-400">↓</span>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    {% endif %}
 
     <!-- Connection info (pwn) -->
     {% if challenge.connection_info %}
