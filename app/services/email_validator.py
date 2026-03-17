@@ -166,3 +166,9 @@ def is_valid_email_domain(email):
         return False, 'Only emails from trusted providers are accepted (Gmail, Yahoo, Outlook, ProtonMail, etc.)'
 
     return True, ''
+def validate_email(email):
+    """
+    Wrapper around is_valid_email_domain for import compatibility.
+    Returns (is_valid, error_message)
+    """
+    return is_valid_email_domain(email)
