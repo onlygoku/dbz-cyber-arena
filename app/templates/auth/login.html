@@ -27,6 +27,7 @@
         </div>
         <button type="submit" class="btn-primary w-full py-3 text-center block">Enter Arena</button>
       </form>
+      <div class="mt-4 text-center text-sm text-gray-500"><a href="{{ url_for('auth.forgot_password') }}" class="text-gray-500 hover:text-orange-400">Forgot password?</a></div>
       <div class="mt-6 text-center text-sm text-gray-500">
         No account?
         <a href="{{ url_for('auth.register') }}" class="text-orange-400 hover:underline">Register here</a>
@@ -35,3 +36,4 @@
   </div>
 </div>
 {% endblock %}
+
