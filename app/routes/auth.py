@@ -1,11 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_user, logout_user, login_required, current_user
+import threading
 from app import db
 from app.models.user import User
 from app.services.email_service import send_verification_email
 from app.services.email_validator import is_valid_email_domain
-from app.services.email_validator import validate_email
-from app.services.email_validator import validate_email
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -38,7 +37,6 @@ def register():
             flash('Password must be at least 8 characters.', 'error')
             return render_template('auth/register.html')
 
-        # Validate email (format + disposable check)
         is_valid, email_error = is_valid_email_domain(email)
         if not is_valid:
             flash(email_error, 'error')
@@ -58,36 +56,42 @@ def register():
         db.session.add(user)
         db.session.commit()
 
+        user_id  = user.id
+        suppress = current_app.config.get('MAIL_SUPPRESS_SEND', False)
+
         current_app.logger.info(f'Token: {user.verify_token}')
         current_app.logger.info(f'Mail server: {current_app.config.get("MAIL_SERVER")}')
         current_app.logger.info(f'Mail user: {current_app.config.get("MAIL_USERNAME")}')
-        current_app.logger.info(f'Suppress: {current_app.config.get("MAIL_SUPPRESS_SEND")}')
+        current_app.logger.info(f'Suppress: {suppress}')
 
-        suppress = current_app.config.get('MAIL_SUPPRESS_SEND', False)
         if not suppress:
-            import threading
             app_instance = current_app._get_current_object()
-            user_id = user.id
+            # Build URL here while request context is still active
+            verify_url = url_for('auth.verify_email', token=user.verify_token, _external=True)
 
-        def send_async_email(app, uid):
-            with app.app_context():
-                from app.models.user import User as U
-                u = U.query.get(uid)
-                if u:
-                    send_verification_email(u)
+            def send_async_email(app, uid, vurl):
+                with app.app_context():
+                    from app.models.user import User as U
+                    from app.services.email_service import send_verification_email as _send
+                    u = U.query.get(uid)
+                    if u:
+                        _send(u, verify_url=vurl)
 
-        thread = threading.Thread(target=send_async_email, args=(app_instance, user_id))
-        thread.daemon = True
-        thread.start()
+            thread = threading.Thread(target=send_async_email, args=(app_instance, user_id, verify_url))
+            thread.daemon = True
+            thread.start()
 
-        flash('Registration successful! Check your email to verify your account.', 'success')
-    else:
-    # Dev mode: auto-verify
-        user.is_verified = True
-        db.session.commit()
-        flash('Registration successful! (Dev mode: auto-verified)', 'success')
+            flash('Registration successful! Check your email to verify your account.', 'success')
+        else:
+            # Dev mode: auto-verify
+            user.is_verified = True
+            db.session.commit()
+            flash('Registration successful! (Dev mode: auto-verified)', 'success')
 
-    return redirect(url_for('auth.login'))
+        return redirect(url_for('auth.login'))
+
+    return render_template('auth/register.html')
+
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -162,7 +166,6 @@ def forgot_password():
         email = request.form.get('email', '').strip().lower()
         user  = User.query.filter_by(email=email).first()
 
-        # Always show same message to prevent email enumeration
         flash('If that email is registered, you will receive a password reset link shortly.', 'info')
 
         if user and user.is_verified:
