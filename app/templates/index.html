@@ -53,7 +53,7 @@
 {% block content %}
 <div class="hero-bg grid-lines -mx-6 -mt-8 px-6 pt-24 pb-20 mb-16">
   <div class="text-center max-w-4xl mx-auto">
-    <div class="text-8xl mb-6 dragon-glow">??</div>
+    <div class="text-8xl mb-6 dragon-glow">🐉</div>
     <h1 class="font-display font-black text-4xl md:text-6xl mb-4 leading-none">
       <span class="text-orange-400">DRAGON BALL Z</span><br/>
       <span class="text-yellow-400">CYBER ARENA</span>
@@ -111,16 +111,56 @@
 
 <!-- Features -->
 <div class="grid md:grid-cols-2 gap-8 mb-16">
-  <div class="ctf-card p-6">
-    <h3 class="font-display text-sm font-bold text-orange-400 uppercase tracking-widest mb-4">Challenge Categories</h3>
-    <div class="space-y-1">
-      {% for cat, icon in [('Web', '🌐'), ('Cryptography', '🔐'), ('Pwn', '💥'), ('Reverse Engineering', '🔄'), ('Forensics', '🔍'), ('OSINT', '👁'), ('Misc', '🐉')] %}
-      <div class="feature-line">
-        <span class="text-xl">{{ icon }}</span>
-        <div>
-          <div class="font-body font-bold text-gray-200">{{ cat }}</div>
+
+  <!-- Category Carousel -->
+  <div class="ctf-card p-6 overflow-hidden">
+    <h3 class="font-display text-sm font-bold text-orange-400 uppercase tracking-widest mb-5">Challenge Categories</h3>
+
+    <div class="carousel-wrapper" style="position:relative;">
+      <!-- Track -->
+      <div id="carouselTrack" style="display:flex; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); will-change: transform;">
+        {% for cat, icon, color, desc in [
+          ('Web',               '🌐', '#3b82f6', 'SQL injection, XSS, SSRF & more'),
+          ('Cryptography',      '🔐', '#f97316', 'Ciphers, hashes & crypto attacks'),
+          ('Pwn',               '💥', '#ef4444', 'Buffer overflows & exploitation'),
+          ('Reverse Engineering','🔄', '#8b5cf6', 'Disassemble & analyze binaries'),
+          ('Forensics',         '🔍', '#06b6d4', 'Disk images, pcaps & memory'),
+          ('OSINT',             '👁',  '#fbbf24', 'Open source intelligence'),
+          ('Misc',              '🐉', '#22c55e', 'Steganography & wild cards')
+        ] %}
+        <div class="carousel-slide" style="min-width:100%; padding: 0 4px; box-sizing: border-box;">
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid #1e1e3a; border-radius:6px; padding: 2rem; text-align:center; position:relative; overflow:hidden;">
+            <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,{{ color }},transparent);"></div>
+            <div style="font-size:4rem; margin-bottom:1rem; filter: drop-shadow(0 0 16px {{ color }});">{{ icon }}</div>
+            <div style="font-family:'Orbitron',sans-serif; font-size:1.1rem; font-weight:900; color:{{ color }}; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.5rem;">{{ cat }}</div>
+            <div style="font-family:'Rajdhani',sans-serif; color:#9ca3af; font-size:0.95rem;">{{ desc }}</div>
+          </div>
         </div>
+        {% endfor %}
       </div>
+
+      <!-- Prev / Next buttons -->
+      <button id="carouselPrev" onclick="carouselMove(-1)"
+        style="position:absolute;left:-12px;top:50%;transform:translateY(-50%);
+               background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.4);
+               color:#f97316;width:32px;height:32px;border-radius:50%;
+               font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+               transition:background 0.2s;">‹</button>
+      <button id="carouselNext" onclick="carouselMove(1)"
+        style="position:absolute;right:-12px;top:50%;transform:translateY(-50%);
+               background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.4);
+               color:#f97316;width:32px;height:32px;border-radius:50%;
+               font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+               transition:background 0.2s;">›</button>
+    </div>
+
+    <!-- Dots -->
+    <div id="carouselDots" style="display:flex;justify-content:center;gap:6px;margin-top:1rem;">
+      {% for i in range(7) %}
+      <button onclick="carouselGoTo({{ i }})"
+        style="width:8px;height:8px;border-radius:50%;border:none;cursor:pointer;transition:all 0.2s;
+               background: {{ '#f97316' if i == 0 else '#1e1e3a' }};"
+        class="carousel-dot"></button>
       {% endfor %}
     </div>
   </div>
@@ -134,7 +174,7 @@
       <li class="flex gap-2"><span class="text-orange-400">▸</span> Dynamic per-team flags on select challenges</li>
       <li class="flex gap-2"><span class="text-orange-400">▸</span> Scoreboard freezes in the final hour</li>
       <li class="flex gap-2"><span class="text-orange-400">▸</span> First Blood bonus badge on each challenge</li>
-      <li class="flex gap-2"><span class="text-yellow-400 font-bold">★</span> Boss Challenge: <strong class="text-yellow-300">Shenron Ultimate Wish</strong> - 1000 pts</li>
+      <li class="flex gap-2"><span class="text-yellow-400 font-bold">★</span> Boss Challenge: <strong class="text-yellow-300">Shenron Ultimate Wish</strong> — 1000 pts</li>
     </ul>
   </div>
 </div>
@@ -146,3 +186,49 @@
 {% endif %}
 {% endblock %}
 
+{% block scripts %}
+<script>
+const TOTAL = 7;
+let current = 0;
+let autoTimer = null;
+
+function carouselGoTo(index) {
+  current = (index + TOTAL) % TOTAL;
+  document.getElementById('carouselTrack').style.transform = `translateX(-${current * 100}%)`;
+  document.querySelectorAll('.carousel-dot').forEach((dot, i) => {
+    dot.style.background = i === current ? '#f97316' : '#1e1e3a';
+    dot.style.transform  = i === current ? 'scale(1.3)' : 'scale(1)';
+  });
+}
+
+function carouselMove(dir) {
+  carouselGoTo(current + dir);
+  resetAuto();
+}
+
+function resetAuto() {
+  clearInterval(autoTimer);
+  autoTimer = setInterval(() => carouselGoTo(current + 1), 3000);
+}
+
+// Start auto-play
+autoTimer = setInterval(() => carouselGoTo(current + 1), 3000);
+
+// Pause on hover
+const wrapper = document.querySelector('.carousel-wrapper');
+if (wrapper) {
+  wrapper.addEventListener('mouseenter', () => clearInterval(autoTimer));
+  wrapper.addEventListener('mouseleave', () => resetAuto());
+}
+
+// Touch/swipe support
+let touchStartX = 0;
+if (wrapper) {
+  wrapper.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  wrapper.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) carouselMove(diff > 0 ? 1 : -1);
+  });
+}
+</script>
+{% endblock %}
