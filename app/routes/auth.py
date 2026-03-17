@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_user, logout_user, login_required, current_user
-import threading
 from app import db
 from app.models.user import User
 from app.services.email_service import send_verification_email
@@ -65,23 +64,13 @@ def register():
         current_app.logger.info(f'Suppress: {suppress}')
 
         if not suppress:
-            app_instance = current_app._get_current_object()
-            # Build URL here while request context is still active
             verify_url = url_for('auth.verify_email', token=user.verify_token, _external=True)
-
-            def send_async_email(app, uid, vurl):
-                with app.app_context():
-                    from app.models.user import User as U
-                    from app.services.email_service import send_verification_email as _send
-                    u = U.query.get(uid)
-                    if u:
-                        _send(u, verify_url=vurl)
-
-            thread = threading.Thread(target=send_async_email, args=(app_instance, user_id, verify_url))
-            thread.daemon = True
-            thread.start()
-
-            flash('Registration successful! Check your email to verify your account.', 'success')
+            try:
+                send_verification_email(user, verify_url=verify_url)
+                flash('Registration successful! Check your email to verify your account.', 'success')
+            except Exception as e:
+                current_app.logger.error(f'Email error: {e}')
+                flash('Registration successful! However we could not send the verification email. Contact the admin.', 'warning')
         else:
             # Dev mode: auto-verify
             user.is_verified = True
