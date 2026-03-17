@@ -116,4 +116,7 @@ def _bootstrap(app):
         db.session.commit()
         app.logger.info('Event state initialised.')
 
-    # Auto-import disabled
+    # Auto-import disabled — add challenges via Admin panel
+    # challenges_dir = os.path.join(app.root_path, '..', 'challenges')
+    # if os.path.isdir(challenges_dir):
+    #     import_all_challenges(challenges_dir)
