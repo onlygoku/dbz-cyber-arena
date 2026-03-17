@@ -1,48 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+{% block extra_head %}{% endblock %} 
+{% set state = namespace(obj=None) %} {% if g_state and g_state.announcement %} 
+📡 {{ g_state.announcement }} 
+{% endif %} 
+🐉 
+DRAGON BALL Z
+CYBER ARENA
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>{% block title %}DBZ Cyber Arena{% endblock %}</title>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='css/cyber.css') }}">
-<script src="https://cdn.tailwindcss.com"></script>
-
-</head>
-
-<body class="bg-[#05060a] text-gray-200 overflow-x-hidden">
-
-<nav class="flex justify-between items-center px-6 py-4">
-
-<div class="text-orange-400 font-bold tracking-widest">
-DRAGON BALL Z CYBER ARENA
-</div>
-
-<div class="flex gap-4 items-center text-sm">
-
-<a href="{{ url_for('auth.index') }}" class="nav-link">Home</a>
-<a href="{{ url_for('challenges.list') }}" class="nav-link">Challenges</a>
-<a href="{{ url_for('scoreboard.index') }}" class="nav-link">Scoreboard</a>
-
-{% if current_user.is_authenticated %}
-<a href="{{ url_for('team.dashboard') }}" class="nav-link">Team</a>
-<a href="{{ url_for('profile.edit') }}" class="nav-link">Profile</a>
-{% else %}
-<a href="{{ url_for('auth.login') }}" class="nav-btn login-btn">Login</a>
-<a href="{{ url_for('auth.register') }}" class="nav-btn register-btn">Register</a>
-{% endif %}
-
-</div>
-
-</nav>
-
-<main>
-{% block content %}{% endblock %}
-</main>
-
-<script src="{{ url_for('static', filename='js/particles.js') }}"></script>
-
-</body>
-</html>
+{% if current_user.is_authenticated %} Challenges Scoreboard Team {% if current_user.is_admin %} Admin {% endif %} 
+{{ current_user.username }} LOGOUT {% else %} LOGIN REGISTER {% endif %} 
+{% with messages = get_flashed_messages(with_categories=True) %} {% if messages %} 
+{% for category, message in messages %} 
+{% if category == 'success' %}✓{% elif category == 'error' %}✗{% elif category == 'warning' %}⚠{% else %}ℹ{% endif %} {{ message }} 
+{% endfor %} 
+{% endif %} {% endwith %} {% block content %}{% endblock %} 
+Dragon Ball Z Cyber Arena CTF Platform - Powered by Flask 
+{% block scripts %}{% endblock %} 
+🎯
+FLAG CAPTURED!
+POINTS 
+New team score:
+🩸 First Blood! 
+Shenron stirs...
+Continue → 
+{% block modals %}{% endblock %} 

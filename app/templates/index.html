@@ -1,58 +1,148 @@
 ﻿{% extends "base.html" %}
 {% block title %}Welcome{% endblock %}
 
+{% block extra_head %}
+<style>
+  .hero-bg {
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(249,115,22,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(251,191,36,0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(139,92,246,0.06) 0%, transparent 50%),
+      #0a0a0f;
+  }
+  .dragon-glow {
+    text-shadow: 0 0 40px rgba(249,115,22,0.6), 0 0 80px rgba(251,191,36,0.3);
+    animation: dragonPulse 3s ease-in-out infinite;
+  }
+  @keyframes dragonPulse {
+    0%,100% { text-shadow: 0 0 40px rgba(249,115,22,0.6), 0 0 80px rgba(251,191,36,0.3); }
+    50%      { text-shadow: 0 0 60px rgba(249,115,22,0.9), 0 0 120px rgba(251,191,36,0.5); }
+  }
+  .grid-lines {
+    background-image:
+      linear-gradient(rgba(249,115,22,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(249,115,22,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .stat-box {
+    background: rgba(15,15,26,0.8);
+    border: 1px solid #1e1e3a;
+    border-radius: 4px;
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #f97316, transparent);
+  }
+  .feature-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(30,30,58,0.5);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
+<div class="hero-bg grid-lines -mx-6 -mt-8 px-6 pt-24 pb-20 mb-16">
+  <div class="text-center max-w-4xl mx-auto">
+    <div class="text-8xl mb-6 dragon-glow">??</div>
+    <h1 class="font-display font-black text-4xl md:text-6xl mb-4 leading-none">
+      <span class="text-orange-400">DRAGON BALL Z</span><br/>
+      <span class="text-yellow-400">CYBER ARENA</span>
+    </h1>
+    <p class="font-mono text-cyan-400 text-lg mb-2 tracking-widest uppercase">
+      Capture The Flag Competition
+    </p>
+    <p class="text-gray-400 text-lg mb-10 max-w-xl mx-auto">
+      Hack through challenges across web, cryptography, binary exploitation and more.
+      Collect Dragon Balls. Claim ultimate power.
+    </p>
 
-<div class="hero-bg">
-
-<canvas id="particles"></canvas>
-
-<div class="lightning"></div>
-
-<div class="hero-dragon">
-
-<div class="shenron-aura"></div>
-
-<div class="orbit">
-  <div class="orbit-inner">
-
-    <div class="dragonball ball1"><span>★</span></div>
-    <div class="dragonball ball2"><span>★★</span></div>
-    <div class="dragonball ball3"><span>★★★</span></div>
-    <div class="dragonball ball4"><span>★★★★</span></div>
-    <div class="dragonball ball5"><span>★★★★★</span></div>
-    <div class="dragonball ball6"><span>★★★★★★</span></div>
-    <div class="dragonball ball7"><span>★★★★★★★</span></div>
-
+    {% if not current_user.is_authenticated %}
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="{{ url_for('auth.register') }}" class="btn-primary text-base px-8 py-3">
+        Enter the Arena
+      </a>
+      <a href="{{ url_for('auth.login') }}" class="btn-secondary text-base px-8 py-3">
+        Login
+      </a>
+    </div>
+    {% else %}
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="{{ url_for('challenges.list') }}" class="btn-primary text-base px-8 py-3">
+        View Challenges
+      </a>
+      <a href="{{ url_for('scoreboard.index') }}" class="btn-secondary text-base px-8 py-3">
+        Scoreboard
+      </a>
+    </div>
+    {% endif %}
   </div>
 </div>
 
-<img src="{{ url_for('static', filename='img/dragon.png') }}"
-     class="dragon-img">
-
+<!-- Stats Row -->
+{% set state = EventState if EventState else None %}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+  <div class="stat-box">
+    <div class="font-display text-3xl font-black text-orange-400">6000</div>
+    <div class="font-display text-xs text-gray-500 uppercase tracking-widest mt-1">Total Points</div>
+  </div>
+  <div class="stat-box">
+    <div class="font-display text-3xl font-black text-yellow-400">6h</div>
+    <div class="font-display text-xs text-gray-500 uppercase tracking-widest mt-1">Duration</div>
+  </div>
+  <div class="stat-box">
+    <div class="font-display text-3xl font-black text-cyan-400">7</div>
+    <div class="font-display text-xs text-gray-500 uppercase tracking-widest mt-1">Categories</div>
+  </div>
+  <div class="stat-box">
+    <div class="font-display text-3xl font-black text-purple-400">3</div>
+    <div class="font-display text-xs text-gray-500 uppercase tracking-widest mt-1">Max Team Size</div>
+  </div>
 </div>
 
-<div class="hero-text">
+<!-- Features -->
+<div class="grid md:grid-cols-2 gap-8 mb-16">
+  <div class="ctf-card p-6">
+    <h3 class="font-display text-sm font-bold text-orange-400 uppercase tracking-widest mb-4">Challenge Categories</h3>
+    <div class="space-y-1">
+      {% for cat, icon in [('Web', '🌐'), ('Cryptography', '🔐'), ('Pwn', '💥'), ('Reverse Engineering', '🔄'), ('Forensics', '🔍'), ('OSINT', '👁'), ('Misc', '🐉')] %}
+      <div class="feature-line">
+        <span class="text-xl">{{ icon }}</span>
+        <div>
+          <div class="font-body font-bold text-gray-200">{{ cat }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
 
-<h1>DRAGON BALL Z</h1>
-<h2>CYBER ARENA</h2>
-
-<p>Capture The Flag Competition</p>
-
-<div class="hero-buttons">
-
-<a href="{{ url_for('auth.register') }}" class="btn-primary">
-Enter Arena
-</a>
-
-<a href="{{ url_for('auth.login') }}" class="btn-secondary">
-Login
-</a>
-
+  <div class="ctf-card p-6">
+    <h3 class="font-display text-sm font-bold text-yellow-400 uppercase tracking-widest mb-4">Rules & Format</h3>
+    <ul class="space-y-3 text-gray-300 text-sm font-body">
+      <li class="flex gap-2"><span class="text-orange-400">▸</span> Teams of up to 3 members</li>
+      <li class="flex gap-2"><span class="text-orange-400">▸</span> 10 attempts per challenge before penalty kicks in</li>
+      <li class="flex gap-2"><span class="text-orange-400">▸</span> −10 points per wrong submission after limit</li>
+      <li class="flex gap-2"><span class="text-orange-400">▸</span> Dynamic per-team flags on select challenges</li>
+      <li class="flex gap-2"><span class="text-orange-400">▸</span> Scoreboard freezes in the final hour</li>
+      <li class="flex gap-2"><span class="text-orange-400">▸</span> First Blood bonus badge on each challenge</li>
+      <li class="flex gap-2"><span class="text-yellow-400 font-bold">★</span> Boss Challenge: <strong class="text-yellow-300">Shenron Ultimate Wish</strong> - 1000 pts</li>
+    </ul>
+  </div>
 </div>
 
+{% if current_user.is_authenticated %}
+<div class="text-center">
+  <a href="{{ url_for('team.dashboard') }}" class="btn-secondary">My Team Dashboard</a>
 </div>
-
-</div>
-
+{% endif %}
 {% endblock %}
+
