@@ -3,6 +3,9 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.models.user import User
 from app.services.email_service import send_verification_email
+from app.services.email_validator import is_valid_email_domain
+from app.services.email_validator import validate_email
+from app.services.email_validator import validate_email
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -35,6 +38,12 @@ def register():
             flash('Password must be at least 8 characters.', 'error')
             return render_template('auth/register.html')
 
+        # Validate email (format + disposable check)
+        is_valid, email_error = is_valid_email_domain(email)
+        if not is_valid:
+            flash(email_error, 'error')
+            return render_template('auth/register.html')
+
         if User.query.filter_by(username=username).first():
             flash('Username already taken.', 'error')
             return render_template('auth/register.html')
@@ -51,8 +60,11 @@ def register():
 
         suppress = current_app.config.get('MAIL_SUPPRESS_SEND', False)
         if not suppress:
-            send_verification_email(user)
-            flash('Registration successful! Check your email to verify your account.', 'success')
+            sent = send_verification_email(user)
+            if sent:
+                flash('Registration successful! Check your email to verify your account.', 'success')
+            else:
+                flash('Registration successful! However we could not send the verification email. Contact the admin.', 'warning')
         else:
             # Dev mode: auto-verify
             user.is_verified = True
@@ -127,20 +139,27 @@ def verify_email(token):
 def unverified():
     return render_template('auth/verify.html')
 
+
 @auth_bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     if current_user.is_authenticated:
         return redirect(url_for('challenges.list'))
+
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         user  = User.query.filter_by(email=email).first()
-        flash('If that email is registered you will receive a reset link shortly.', 'info')
+
+        # Always show same message to prevent email enumeration
+        flash('If that email is registered, you will receive a password reset link shortly.', 'info')
+
         if user and user.is_verified:
             from app.services.email_service import send_password_reset_email
             user.generate_reset_token()
             db.session.commit()
             send_password_reset_email(user)
+
         return redirect(url_for('auth.login'))
+
     return render_template('auth/forgot_password.html')
 
 
@@ -148,23 +167,31 @@ def forgot_password():
 def reset_password(token):
     if current_user.is_authenticated:
         return redirect(url_for('challenges.list'))
+
     user = User.query.filter_by(reset_token=token).first()
+
     if not user or not user.is_reset_token_valid():
         flash('This password reset link is invalid or has expired.', 'error')
         return redirect(url_for('auth.forgot_password'))
+
     if request.method == 'POST':
         new_password     = request.form.get('new_password', '')
         confirm_password = request.form.get('confirm_password', '')
+
         if len(new_password) < 8:
             flash('Password must be at least 8 characters.', 'error')
             return render_template('auth/reset_password.html', token=token)
+
         if new_password != confirm_password:
             flash('Passwords do not match.', 'error')
             return render_template('auth/reset_password.html', token=token)
+
         user.set_password(new_password)
         user.reset_token        = None
         user.reset_token_expiry = None
         db.session.commit()
+
         flash('Password reset successfully! You can now log in.', 'success')
         return redirect(url_for('auth.login'))
+
     return render_template('auth/reset_password.html', token=token)
