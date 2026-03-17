@@ -1,58 +1,54 @@
 ﻿{% extends "base.html" %}
-{% block title %}Welcome{% endblock %}
-
 {% block content %}
+<div class="main-wrapper">
+    <header class="hero-section">
+        <div class="hero-text">
+            <h1 class="glow-title">DRAGON BALL Z</h1>
+            <h2 class="sub-header">CYBER ARENA</h2>
+            <p class="ctf-tag">/ CAPTURE THE FLAG COMPETITION /</p>
+            <p class="flavor-text">
+                Hack through challenges across web, cryptography, binary exploitation and more.<br>
+                Collect Dragon Balls. Claim ultimate power.
+            </p>
+            <div class="hero-btns">
+                <button class="btn-primary">VIEW CHALLENGES</button>
+                <button class="btn-secondary">SCOREBOARD</button>
+            </div>
+        </div>
+    </header>
 
-<div class="hero-bg">
+    <section class="stats-bar">
+        <div class="stat-item"><span class="stat-icon">🟠</span> 6000 <small>TOTAL POINTS</small></div>
+        <div class="stat-item"><span class="stat-icon">🕒</span> 6h <small>DURATION</small></div>
+        <div class="stat-item"><span class="stat-icon">🛡️</span> 7 <small>CATEGORIES</small></div>
+        <div class="stat-item"><span class="stat-icon">👥</span> 3 <small>MAX TEAM SIZE</small></div>
+    </section>
 
-<canvas id="particles"></canvas>
+    <div class="bottom-layout">
+        <div class="ball-grid">
+            <div class="ball ball-blue" data-label="Web">[W]</div>
+            <div class="ball ball-orange" data-label="Crypto">[C]</div>
+            <div class="ball ball-red" data-label="Pwn">[P]</div>
+            <div class="ball ball-crimson" data-label="Reverse">[R]</div>
+            <div class="ball ball-purple" data-label="Forensics">[F]</div>
+            <div class="ball ball-gold" data-label="Misc">[M]</div>
+        </div>
 
-<div class="lightning"></div>
+        <aside class="rules-card">
+            <h3>RULES & FORMAT</h3>
+            <ul>
+                <li>Teams of up to 3 members</li>
+                <li>10 attempts per challenge before penalty kicks in</li>
+                <li>-10 points per wrong submission after limit</li>
+                <li>Dynamic per team flags on select challenges</li>
+                <li>Scoreboard freezes in the final hour</li>
+            </ul>
+            <div class="boss-reward">★ Boss Challenge: 1,000 pts.</div>
+        </aside>
+    </div>
 
-<div class="hero-dragon">
-
-<div class="shenron-aura"></div>
-
-<div class="orbit">
-  <div class="orbit-inner">
-
-    <div class="dragonball ball1"><span>★</span></div>
-    <div class="dragonball ball2"><span>★★</span></div>
-    <div class="dragonball ball3"><span>★★★</span></div>
-    <div class="dragonball ball4"><span>★★★★</span></div>
-    <div class="dragonball ball5"><span>★★★★★</span></div>
-    <div class="dragonball ball6"><span>★★★★★★</span></div>
-    <div class="dragonball ball7"><span>★★★★★★★</span></div>
-
-  </div>
+    <div class="footer-action">
+        <button class="dashboard-link">MY TEAM DASHBOARD</button>
+    </div>
 </div>
-
-<img src="{{ url_for('static', filename='img/dragon.png') }}"
-     class="dragon-img">
-
-</div>
-
-<div class="hero-text">
-
-<h1>DRAGON BALL Z</h1>
-<h2>CYBER ARENA</h2>
-
-<p>Capture The Flag Competition</p>
-
-<div class="hero-buttons">
-
-<a href="{{ url_for('auth.register') }}" class="btn-primary">
-Enter Arena
-</a>
-
-<a href="{{ url_for('auth.login') }}" class="btn-secondary">
-Login
-</a>
-
-</div>
-
-</div>
-
-</div>
-
 {% endblock %}
