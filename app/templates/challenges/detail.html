@@ -123,7 +123,7 @@ window.addEventListener('load', () => {
 
     <!-- Files for download -->
     {% if challenge.files_json %}
-    {% set files = challenge.files_json | tojson | fromjson %}
+    {% set files = challenge.files_json | fromjson %}
     {% if files %}
     <div class="ctf-card p-6">
       <h3 class="font-display text-xs text-gray-500 uppercase tracking-widest mb-4">
@@ -131,7 +131,7 @@ window.addEventListener('load', () => {
       </h3>
       <div class="space-y-2">
         {% for file in files %}
-        <a href="{{ url_for('static', filename='uploads/challenges/' ~ challenge.id ~ '/' ~ file.name) }}"
+        <a href="{{ file.url if file.url is defined else url_for('static', filename='uploads/challenges/' ~ challenge.id ~ '/' ~ file.name) }}"
            download
            class="flex items-center justify-between bg-black/30 border border-gray-800 hover:border-cyan-700 rounded px-4 py-2.5 transition group">
           <div class="flex items-center gap-3">
@@ -181,7 +181,6 @@ window.addEventListener('load', () => {
   <!-- Submit Panel -->
   <div class="space-y-4">
 
-    <!-- Status -->
     {% if already_solved %}
     <div class="ctf-card p-6 text-center border-green-800/40">
       <div class="text-4xl mb-2">✅</div>
@@ -250,9 +249,7 @@ window.addEventListener('load', () => {
     {% else %}
     <div class="ctf-card p-4">
       <div class="font-mono text-xs text-gray-500 text-center">
-        {% if not can_submit %}
         Submissions are currently closed.
-        {% endif %}
       </div>
     </div>
     {% endif %}

@@ -28,10 +28,8 @@ ALLOWED_EXTENSIONS = {
 
 
 def _save_challenge_files(challenge_id: int, files) -> list:
-    """Save uploaded files for a challenge. Returns updated file list."""
-    upload_root = os.path.join(current_app.root_path, 'static', 'uploads', 'challenges', str(challenge_id))
-    os.makedirs(upload_root, exist_ok=True)
-
+    """Upload files to Cloudinary. Returns updated file list."""
+    from app.services.storage_service import upload_file
     saved = []
     for f in files:
         if not f or not f.filename:
@@ -40,11 +38,9 @@ def _save_challenge_files(challenge_id: int, files) -> list:
         ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
         if ext not in ALLOWED_EXTENSIONS and ext != '':
             continue
-        filepath = os.path.join(upload_root, filename)
-        f.save(filepath)
-        size = os.path.getsize(filepath)
-        size_str = f'{size // 1024} KB' if size >= 1024 else f'{size} B'
-        saved.append({'name': filename, 'size': size_str})
+        result = upload_file(f, challenge_id, filename)
+        if result:
+            saved.append(result)
     return saved
 
 
@@ -59,11 +55,9 @@ def _get_existing_files(challenge_id: int) -> list:
     return []
 
 
-# Replace with this:
 @admin_bp.before_request
 def require_admin():
     if not current_user.is_authenticated:
-        from flask import redirect, url_for
         return redirect(url_for('auth.login'))
     if not current_user.is_admin:
         from flask import abort
@@ -175,9 +169,7 @@ def user_action(user_id):
         if user.id == current_user.id:
             flash('You cannot delete your own account.', 'error')
             return redirect(url_for('admin.users'))
-        # Remove team memberships first
         TeamMember.query.filter_by(user_id=user.id).delete()
-        # Remove submissions and solves
         Submission.query.filter_by(user_id=user.id).delete()
         Solve.query.filter_by(user_id=user.id).delete()
         db.session.delete(user)
@@ -273,7 +265,6 @@ def challenge_new():
         db.session.add(ch)
         db.session.flush()
 
-        # Handle file uploads
         files = request.files.getlist('challenge_files')
         if files and any(f.filename for f in files):
             saved = _save_challenge_files(ch.id, files)
@@ -303,7 +294,6 @@ def challenge_edit(chal_id):
         ch.is_boss      = 'is_boss' in request.form
         ch.connection_info = request.form.get('connection_info', '').strip() or None
 
-        # Handle new file uploads (append to existing)
         files = request.files.getlist('challenge_files')
         if files and any(f.filename for f in files):
             existing = _get_existing_files(ch.id)
@@ -329,13 +319,8 @@ def challenge_delete_file(chal_id):
         files = json.loads(ch.files_json)
         files = [f for f in files if f['name'] != filename]
         ch.files_json = json.dumps(files) if files else None
-        # Delete from disk
-        filepath = os.path.join(
-            current_app.root_path, 'static', 'uploads', 'challenges',
-            str(chal_id), secure_filename(filename)
-        )
-        if os.path.exists(filepath):
-            os.remove(filepath)
+        from app.services.storage_service import delete_file
+        delete_file(chal_id, filename)
         db.session.commit()
         flash(f'File "{filename}" deleted.', 'success')
     return redirect(url_for('admin.challenge_edit', chal_id=chal_id))
