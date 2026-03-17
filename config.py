@@ -64,6 +64,11 @@ class Config:
     UPLOAD_FOLDER   = os.environ.get('UPLOAD_FOLDER', os.path.join(BASE_DIR, 'static', 'uploads'))
     MAX_CONTENT_LENGTH = 64 * 1024 * 1024  # 64 MB
 
+    # Cloudinary
+    CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
+    CLOUDINARY_API_KEY    = os.environ.get('CLOUDINARY_API_KEY', '')
+    CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '')
+
     # Freeze scoreboard 1 hour before end
     FREEZE_MINUTES_BEFORE_END = int(os.environ.get('FREEZE_MINUTES_BEFORE_END', 60))
 
