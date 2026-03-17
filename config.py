@@ -8,6 +8,7 @@ class Config:
     # Core
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-change-in-production')
     DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+    BASE_URL = os.environ.get('BASE_URL', None)
 
     # Database
     SQLALCHEMY_DATABASE_URI = os.environ.get(
