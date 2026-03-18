@@ -4,7 +4,7 @@ from flask import current_app
 
 def send_verification_email(user, verify_url=None):
     resend.api_key = current_app.config.get('RESEND_API_KEY')
-    current_app.logger.info(f'Using Resend API key: {resend.api_key[:10]}...')
+    
 
     if verify_url is None:
         from flask import url_for
