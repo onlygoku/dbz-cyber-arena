@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db, login_manager
@@ -16,6 +16,8 @@ class User(UserMixin, db.Model):
     is_verified   = db.Column(db.Boolean, default=False)
     is_banned     = db.Column(db.Boolean, default=False)
     verify_token  = db.Column(db.String(64), unique=True)
+    reset_token        = db.Column(db.String(64), unique=True)
+    reset_token_expiry = db.Column(db.DateTime)
     created_at    = db.Column(db.DateTime, default=datetime.utcnow)
     last_login    = db.Column(db.DateTime)
 
@@ -31,6 +33,16 @@ class User(UserMixin, db.Model):
     def generate_verify_token(self) -> str:
         self.verify_token = secrets.token_urlsafe(32)
         return self.verify_token
+
+    def generate_reset_token(self) -> str:
+        self.reset_token = secrets.token_urlsafe(32)
+        self.reset_token_expiry = datetime.utcnow() + timedelta(hours=1)
+        return self.reset_token
+
+    def is_reset_token_valid(self) -> bool:
+        if not self.reset_token or not self.reset_token_expiry:
+            return False
+        return datetime.utcnow() < self.reset_token_expiry
 
     @property
     def team(self):
