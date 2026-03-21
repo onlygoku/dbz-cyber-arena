@@ -25,6 +25,7 @@ def upload_file(file, challenge_id, filename):
             use_filename=True,
             unique_filename=False,
             overwrite=True,
+            access_mode='public',
         )
 
         # Force correct URL with extension
