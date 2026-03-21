@@ -82,11 +82,35 @@
       </label>
     </div>
 
-    
     <div>
       <label class="font-display text-xs text-gray-400 uppercase tracking-widest block mb-2">
         Challenge Files <span class="text-gray-600 normal-case font-mono">(optional)</span>
       </label>
+
+      {% if challenge and challenge.files_json %}
+      {% set files = challenge.files_json | fromjson %}
+      {% if files %}
+      <div class="space-y-2 mb-3">
+        {% for file in files %}
+        <div class="flex items-center justify-between bg-black/30 border border-gray-800 rounded px-4 py-2">
+          <div class="flex items-center gap-3">
+            <span class="text-cyan-400">📄</span>
+            <span class="font-mono text-sm text-cyan-300">{{ file.name }}</span>
+            <span class="font-mono text-xs text-gray-600">{{ file.size }}</span>
+          </div>
+          <form method="POST" action="{{ url_for('admin.challenge_delete_file', chal_id=challenge.id) }}">
+            <input type="hidden" name="filename" value="{{ file.name }}"/>
+            <button type="submit" class="font-mono text-xs text-red-400 hover:text-red-300"
+              onclick="return confirm('Delete {{ file.name }}?')">
+              ✕ Delete
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endif %}
+
       <input type="file" name="challenge_files" multiple class="admin-input text-sm py-2"/>
       <p class="font-mono text-xs text-gray-600 mt-1">Upload binaries, source code, pcap files, etc.</p>
     </div>
@@ -100,4 +124,3 @@
   </form>
 </div>
 {% endblock %}
-

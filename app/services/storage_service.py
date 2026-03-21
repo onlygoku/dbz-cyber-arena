@@ -15,18 +15,26 @@ def upload_file(file, challenge_id, filename):
     """Upload a file to Cloudinary and return its URL and metadata."""
     init_cloudinary()
     try:
+        ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+
         result = cloudinary.uploader.upload(
             file,
             folder=f'ctf/challenges/{challenge_id}',
-            public_id=filename.rsplit('.', 1)[0],
+            public_id=filename,  # keep full filename including extension
             resource_type='raw',
             use_filename=True,
             unique_filename=False,
             overwrite=True,
         )
+
+        # Force correct URL with extension
+        url = result['secure_url']
+        if ext and not url.endswith(f'.{ext}'):
+            url = f"{url}.{ext}"
+
         return {
             'name': filename,
-            'url': result['secure_url'],
+            'url': url,
             'size': _format_size(result['bytes']),
         }
     except Exception as e:
@@ -38,7 +46,7 @@ def delete_file(challenge_id, filename):
     """Delete a file from Cloudinary."""
     init_cloudinary()
     try:
-        public_id = f'ctf/challenges/{challenge_id}/{filename.rsplit(".", 1)[0]}'
+        public_id = f'ctf/challenges/{challenge_id}/{filename}'
         cloudinary.uploader.destroy(public_id, resource_type='raw')
         return True
     except Exception as e:
