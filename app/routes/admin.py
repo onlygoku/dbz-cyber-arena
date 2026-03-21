@@ -125,6 +125,13 @@ def event_control():
         msg = request.form.get('announcement', '').strip()
         state.announcement = msg or None
         flash('Announcement updated.', 'success')
+    elif action == 'reset':
+        state.is_started = False
+        state.is_ended   = False
+        state.is_frozen  = False
+        state.start_time = None
+        state.end_time   = None
+        flash('Event reset.', 'warning')
 
     db.session.commit()
     flush_cache()
@@ -311,10 +318,10 @@ def challenge_edit(chal_id):
     return render_template('admin/challenge_form.html', challenge=ch)
 
 
-@admin_bp.route('/challenges/<int:chal_id>/delete-file', methods=['POST'])
+@admin_bp.route('/challenges/<int:chal_id>/delete-file', methods=['POST', 'GET'])
 def challenge_delete_file(chal_id):
     ch = Challenge.query.get_or_404(chal_id)
-    filename = request.form.get('filename', '')
+    filename = request.form.get('filename') or request.args.get('filename', '')
     if filename and ch.files_json:
         files = json.loads(ch.files_json)
         files = [f for f in files if f['name'] != filename]

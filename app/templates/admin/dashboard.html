@@ -40,6 +40,13 @@
         {{ '❄ Unfreeze Board' if state.is_frozen else '❄ Freeze Board' }}
       </button>
     </form>
+    <form method="POST" action="{{ url_for('admin.event_control') }}" class="inline"
+      onsubmit="return confirm('Reset event? This will clear start/end times.')">
+      <input type="hidden" name="action" value="reset"/>
+      <button type="submit" class="btn-ghost" style="border-color:#ef4444;color:#ef4444;">
+        ↺ Reset Event
+      </button>
+    </form>
   </div>
 
   <div class="grid md:grid-cols-2 gap-4">
