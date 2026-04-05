@@ -101,6 +101,16 @@ def _bootstrap(app):
     from app.models.user import User
     from app.models.event import EventState
 
+    # Auto-add missing columns
+    with db.engine.connect() as conn:
+        try:
+            conn.execute(db.text('ALTER TABLE teams ADD COLUMN is_restricted BOOLEAN DEFAULT FALSE'))
+            conn.commit()
+            app.logger.info('Added is_restricted column to teams')
+        except Exception:
+            conn.rollback()
+            pass
+
     # Create admin
     admin_email = app.config.get('ADMIN_EMAIL', 'admin@ctf.local')
     admin_pass  = app.config.get('ADMIN_PASSWORD', 'ChangeMe123!')

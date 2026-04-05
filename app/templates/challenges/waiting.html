@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Event Not Started{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center py-32 text-center">
+  <div class="text-6xl mb-6">🐉</div>
+  <h1 class="font-display text-3xl font-black text-orange-400 uppercase tracking-widest mb-4">
+    Arena Not Open Yet
+  </h1>
+  <p class="font-mono text-gray-400 text-sm mb-2">
+    The event has not started yet. Please wait for the admin to start the event.
+  </p>
+  <p class="font-mono text-xs text-gray-600 mt-4">
+    Stay tuned — the Dragon Ball Z Cyber Arena is preparing for battle!
+  </p>
+  <div class="mt-8 font-display text-xs text-gray-700 uppercase tracking-widest animate-pulse">
+    Waiting for event to start...
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  setTimeout(() => location.reload(), 30000);
+</script>
+{% endblock %}

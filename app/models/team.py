@@ -11,11 +11,12 @@ class Team(db.Model):
     invite_code  = db.Column(db.String(16), unique=True, nullable=False)
     is_banned    = db.Column(db.Boolean, default=False)
     is_paused    = db.Column(db.Boolean, default=False)
+    is_restricted = db.Column(db.Boolean, default=False)  # cheating restriction
     created_at   = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
-    members  = db.relationship('TeamMember', back_populates='team', lazy='dynamic')
-    solves   = db.relationship('Solve', back_populates='team', lazy='dynamic')
+    members     = db.relationship('TeamMember', back_populates='team', lazy='dynamic')
+    solves      = db.relationship('Solve', back_populates='team', lazy='dynamic')
     submissions = db.relationship('Submission', back_populates='team', lazy='dynamic')
 
     def __init__(self, **kwargs):

@@ -65,7 +65,12 @@ def register():
         current_app.logger.info(f'Suppress: {suppress}')
 
         if not suppress:
-            verify_url   = url_for('auth.verify_email', token=user.verify_token, _external=True)
+            base_url = current_app.config.get('BASE_URL')
+            if base_url:
+                 verify_url = f"{base_url.rstrip('/')}/verify/{user.verify_token}"
+            else:
+                 verify_url = url_for('auth.verify_email', token=user.verify_token, _external=True)
+
             app_instance = current_app._get_current_object()
 
             def send_async_email(app, uid, vurl):

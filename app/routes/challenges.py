@@ -14,11 +14,39 @@ from app.utils.helpers import get_client_ip
 challenges_bp = Blueprint('challenges', __name__, url_prefix='/challenges')
 
 
+def _get_solved_categories(team):
+    """Get set of categories the team has solved at least one challenge in."""
+    if not team:
+        return set()
+    solved_ids = {s.challenge_id for s in Solve.query.filter_by(team_id=team.id).all()}
+    solved_cats = set()
+    for cid in solved_ids:
+        ch = Challenge.query.get(cid)
+        if ch:
+            solved_cats.add(ch.category)
+    return solved_cats
+
+
+def _all_categories_solved(team):
+    """Check if team has solved at least 1 challenge from every non-boss category."""
+    all_cats = set(
+        ch.category for ch in Challenge.query.filter_by(is_hidden=False, is_boss=False).all()
+    )
+    solved_cats = _get_solved_categories(team)
+    return all_cats.issubset(solved_cats)
+
+
 @challenges_bp.route('/')
 @login_required
 @verified_required
 def list():
     check_and_release_hints()
+
+    state = EventState.get()
+
+    # Feature 1 — show waiting page if event not started
+    if not state or not state.is_started:
+        return render_template('challenges/waiting.html', state=state)
 
     challenges = Challenge.query.filter_by(is_hidden=False).order_by(
         Challenge.category, Challenge.points
@@ -29,9 +57,15 @@ def list():
     if team:
         solved_ids = {s.challenge_id for s in Solve.query.filter_by(team_id=team.id).all()}
 
+    # Feature 2 — check boss unlock
+    boss_unlocked = _all_categories_solved(team)
+
     # Group by category
     categories = {}
     for ch in challenges:
+        # Hide boss challenges if not unlocked
+        if ch.is_boss and not boss_unlocked:
+            continue
         cat = ch.category
         if cat not in categories:
             categories[cat] = []
@@ -39,7 +73,8 @@ def list():
 
     return render_template('challenges/list.html',
                            categories=categories,
-                           solved_ids=solved_ids)
+                           solved_ids=solved_ids,
+                           boss_unlocked=boss_unlocked)
 
 
 @challenges_bp.route('/<slug>', methods=['GET', 'POST'])
@@ -50,6 +85,21 @@ def detail(slug):
     team = current_user.team
 
     state = EventState.get()
+
+    # Feature 1 — block if event not started
+    if not state or not state.is_started:
+        flash('The event has not started yet.', 'warning')
+        return redirect(url_for('challenges.list'))
+
+    # Feature 3 — block restricted teams
+    if team and team.is_restricted:
+        return render_template('challenges/restricted.html')
+
+    # Feature 2 — block boss challenge if not all categories solved
+    if challenge.is_boss and not _all_categories_solved(team):
+        flash('Complete at least one challenge from every category to unlock this challenge.', 'warning')
+        return redirect(url_for('challenges.list'))
+
     event_active = state and state.is_started and not state.is_ended
 
     already_solved = False
@@ -67,12 +117,11 @@ def detail(slug):
         ).count()
 
         max_attempts = current_app.config['MAX_ATTEMPTS']
-        can_submit = event_active and not already_solved and not team.is_paused and not team.is_banned
+        can_submit = event_active and not already_solved and not team.is_paused and not team.is_banned and not team.is_restricted
 
     hints = Hint.query.filter_by(challenge_id=challenge.id, is_visible=True).all()
     first_blood = challenge.first_blood
 
-    # Dynamic flag for display (if applicable)
     dynamic_flag_display = None
     if challenge.is_dynamic and team:
         inner = generate_dynamic_flag(team.id, challenge.id)
@@ -92,7 +141,6 @@ def detail(slug):
         submitted_flag = request.form.get('flag', '').strip()
         ip = get_client_ip(request)
 
-        # Check rate limit (1 per second per team) - lightweight check via last submission time
         last_sub = Submission.query.filter_by(
             team_id=team.id
         ).order_by(Submission.submitted_at.desc()).first()
@@ -116,26 +164,30 @@ def detail(slug):
         db.session.add(sub)
 
         if is_correct:
+            current_pts = challenge.current_points()
+            is_first_blood = challenge.solves.count() == 0
+            if is_first_blood:
+                current_pts = int(current_pts * 1.1)
+
             solve = Solve(
                 team_id=team.id,
                 challenge_id=challenge.id,
                 user_id=current_user.id,
-                points=challenge.points,
+                points=current_pts,
             )
             db.session.add(solve)
             db.session.commit()
 
-            # Run security checks
             check_submission(team.id, challenge.id, ip, current_user.id)
 
             new_score = team.score
             result = {
-                'correct': True,
+                'correct':        True,
                 'challenge_name': challenge.title,
-                'points': challenge.points,
-                'new_score': new_score,
-                'is_boss': challenge.is_boss,
-                'is_first_blood': challenge.solves.count() == 1,
+                'points':         current_pts,
+                'new_score':      new_score,
+                'is_boss':        challenge.is_boss,
+                'is_first_blood': is_first_blood,
             }
         else:
             db.session.commit()

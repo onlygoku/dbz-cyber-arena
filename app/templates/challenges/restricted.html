@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Access Restricted{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center py-32 text-center">
+  <div class="text-6xl mb-6">🚫</div>
+  <h1 class="font-display text-3xl font-black text-red-400 uppercase tracking-widest mb-4">
+    Access Restricted
+  </h1>
+  <p class="font-mono text-gray-400 text-sm mb-2">
+    Your team has been restricted from accessing challenges.
+  </p>
+  <p class="font-mono text-xs text-gray-600 mt-4">
+    If you believe this is a mistake, please contact the event admin.
+  </p>
+</div>
+{% endblock %}

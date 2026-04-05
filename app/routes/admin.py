@@ -79,7 +79,6 @@ def dashboard():
     }
     state = EventState.get()
 
-    # Challenge health
     health = []
     for ch in Challenge.query.filter_by(is_hidden=False).all():
         health.append({
@@ -213,6 +212,12 @@ def team_action(team_id):
     elif action == 'unpause':
         team.is_paused = False
         flash(f'Team {team.name} unpaused.', 'success')
+    elif action == 'restrict':
+        team.is_restricted = True
+        flash(f'Team {team.name} restricted from challenges.', 'warning')
+    elif action == 'unrestrict':
+        team.is_restricted = False
+        flash(f'Team {team.name} unrestricted.', 'success')
     elif action == 'reset':
         Solve.query.filter_by(team_id=team.id).delete()
         Submission.query.filter_by(team_id=team.id).delete()
