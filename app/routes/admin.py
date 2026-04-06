@@ -343,6 +343,34 @@ def challenge_delete(chal_id):
         flash(f'Delete failed: {str(e)}', 'error')
     return redirect(url_for('admin.challenges'))
 
+@admin_bp.route('/challenges/<int:chal_id>/delete-file', methods=['POST', 'GET'])
+@login_required
+def challenge_delete_file(chal_id):
+    ch = db.session.get(Challenge, chal_id)
+    if not ch:
+        abort(404)
+    filename = request.form.get('filename') or request.args.get('filename', '')
+    if filename and ch.files_json:
+        files = json.loads(ch.files_json)
+        files = [f for f in files if f['name'] != filename]
+        ch.files_json = json.dumps(files) if files else None
+        from app.services.storage_service import delete_file
+        delete_file(chal_id, filename)
+        db.session.commit()
+        flash(f'File "{filename}" deleted.', 'success')
+    return redirect(url_for('admin.challenge_edit', chal_id=chal_id))
+
+@admin_bp.route('/challenges/<int:chal_id>/toggle-hidden', methods=['POST'])
+@login_required
+def challenge_toggle_hidden(chal_id):
+    ch = db.session.get(Challenge, chal_id)
+    if not ch:
+        abort(404)
+    ch.is_hidden = not ch.is_hidden
+    db.session.commit()
+    flash(f'Challenge {"hidden" if ch.is_hidden else "visible"}.', 'info')
+    return redirect(url_for('admin.challenges'))
+
 @admin_bp.route('/challenges/import', methods=['POST'])
 @login_required
 def challenge_import():
