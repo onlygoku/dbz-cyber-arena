@@ -1,4 +1,4 @@
-import os
+﻿import os
 import json
 import tempfile
 from datetime import datetime
@@ -64,7 +64,7 @@ def require_admin():
         abort(403)
 
 
-# ── Dashboard ────────────────────────────────────────────────────────────────
+# â”€â”€ Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @admin_bp.route('/')
 def dashboard():
@@ -92,7 +92,7 @@ def dashboard():
     return render_template('admin/dashboard.html', stats=stats, state=state, health=health)
 
 
-# ── Event Control ────────────────────────────────────────────────────────────
+# â”€â”€ Event Control â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @admin_bp.route('/event', methods=['POST'])
 def event_control():
@@ -120,6 +120,25 @@ def event_control():
         if prefix:
             state.flag_prefix = prefix
             flash(f'Flag prefix updated to {prefix}.', 'success')
+    
+    elif action == 'reset_event':
+        from app.models.submission import Submission, Solve
+        from app.models.security import SecurityEvent
+        # Reset all submissions, solves and security events
+        SecurityEvent.query.delete()
+        Solve.query.delete()
+        Submission.query.delete()
+        # Reset event state
+        state.is_started = False
+        state.is_ended   = False
+        state.is_frozen  = False
+        state.start_time = None
+        state.end_time   = None
+        state.announcement = None
+        db.session.commit()
+        flush_cache()
+        flash('Event fully reset. All solves, submissions and alerts cleared.', 'warning')
+        return redirect(url_for('admin.dashboard'))
     elif action == 'announce':
         msg = request.form.get('announcement', '').strip()
         state.announcement = msg or None
@@ -137,7 +156,7 @@ def event_control():
     return redirect(url_for('admin.dashboard'))
 
 
-# ── Users ────────────────────────────────────────────────────────────────────
+# â”€â”€ Users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @admin_bp.route('/users')
 def users():
@@ -187,7 +206,7 @@ def user_action(user_id):
     return redirect(url_for('admin.users'))
 
 
-# ── Teams ────────────────────────────────────────────────────────────────────
+# â”€â”€ Teams â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @admin_bp.route('/teams')
 def teams():
@@ -240,7 +259,7 @@ def team_action(team_id):
     return redirect(url_for('admin.teams'))
 
 
-# ── Challenges ───────────────────────────────────────────────────────────────
+# â”€â”€ Challenges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @admin_bp.route('/challenges')
 def challenges():
@@ -386,7 +405,7 @@ def challenge_import():
     return redirect(url_for('admin.challenges'))
 
 
-# ── Submissions ──────────────────────────────────────────────────────────────
+# â”€â”€ Submissions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @admin_bp.route('/submissions')
 def submissions():
@@ -400,7 +419,7 @@ def submissions():
     return render_template('admin/submissions.html', subs=subs, q=q)
 
 
-# ── Security Monitor ─────────────────────────────────────────────────────────
+# â”€â”€ Security Monitor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @admin_bp.route('/security')
 def security():
@@ -419,7 +438,7 @@ def security_review(ev_id):
     return redirect(url_for('admin.security'))
 
 
-# ── Settings ─────────────────────────────────────────────────────────────────
+# â”€â”€ Settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @admin_bp.route('/settings')
 def settings():

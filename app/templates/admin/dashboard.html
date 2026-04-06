@@ -1,4 +1,4 @@
-{% extends "admin/base.html" %}
+﻿{% extends "admin/base.html" %}
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
@@ -31,20 +31,20 @@
     <form method="POST" action="{{ url_for('admin.event_control') }}" class="inline">
       <input type="hidden" name="action" value="{{ 'start' if not state.is_started else 'end' }}"/>
       <button type="submit" class="btn-admin">
-        {{ '▶ Start Event' if not state.is_started else ('■ End Event' if not state.is_ended else '✓ Event Ended') }}
+        {{ 'â–¶ Start Event' if not state.is_started else ('â–  End Event' if not state.is_ended else 'âœ“ Event Ended') }}
       </button>
     </form>
     <form method="POST" action="{{ url_for('admin.event_control') }}" class="inline">
       <input type="hidden" name="action" value="{{ 'unfreeze' if state.is_frozen else 'freeze' }}"/>
       <button type="submit" class="btn-ghost">
-        {{ '❄ Unfreeze Board' if state.is_frozen else '❄ Freeze Board' }}
+        {{ 'â„ Unfreeze Board' if state.is_frozen else 'â„ Freeze Board' }}
       </button>
     </form>
     <form method="POST" action="{{ url_for('admin.event_control') }}" class="inline"
       onsubmit="return confirm('Reset event? This will clear start/end times.')">
       <input type="hidden" name="action" value="reset"/>
       <button type="submit" class="btn-ghost" style="border-color:#ef4444;color:#ef4444;">
-        ↺ Reset Event
+        â†º Reset Event
       </button>
     </form>
   </div>
@@ -70,7 +70,15 @@
       </div>
       <button type="submit" class="btn-admin">Broadcast</button>
     </form>
-  </div>
+  
+    <form method="POST" action="{{ url_for('admin.event_control') }}" class="inline">
+      <input type="hidden" name="action" value="reset_event"/>
+      <button type="submit" class="btn-ghost text-red-400 border-red-900/40"
+        onclick="return confirm('FULL RESET: This will delete ALL solves, submissions and security alerts. Are you sure?')">
+        Reset Entire Event
+      </button>
+    </form>
+</div>
 
   <div class="mt-4 flex flex-wrap gap-4 font-mono text-xs text-gray-500">
     <span>Status: <span class="{% if state.is_ended %}text-red-400{% elif state.is_started %}text-green-400{% else %}text-yellow-400{% endif %}">
@@ -105,7 +113,7 @@
         <td class="font-mono text-gray-400">{{ h.solve_rate }}%</td>
         <td>
           {% if h.warning %}
-          <span class="badge-red">⚠ No Solves</span>
+          <span class="badge-red">âš  No Solves</span>
           {% elif h.solve_rate > 50 %}
           <span class="badge-green">Healthy</span>
           {% else %}
