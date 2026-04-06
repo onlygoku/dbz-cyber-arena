@@ -1,11 +1,13 @@
-﻿import os
+﻿# -*- coding: utf-8 -*-
+import os
 import json
 import tempfile
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import (Blueprint, render_template, redirect, url_for, flash,
-                   request, current_app, jsonify, send_from_directory)
+                   request, current_app, jsonify, abort)
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
+
 from app import db
 from app.models.user import User
 from app.models.team import Team, TeamMember
@@ -15,7 +17,6 @@ from app.models.event import EventState
 from app.models.security import SecurityEvent
 from app.services.challenge_import import import_challenge_from_zip
 from app.services.cache_service import flush as flush_cache
-from app.utils.decorators import admin_required
 from app.utils.helpers import slugify
 
 admin_bp = Blueprint('admin', __name__)
@@ -26,6 +27,7 @@ ALLOWED_EXTENSIONS = {
     'html', 'php', 'rb', 'go', 'rs', 'java', 'class', 'jar', 'sql',
 }
 
+# ---------------- Helper Functions ----------------
 
 def _save_challenge_files(challenge_id: int, files) -> list:
     """Upload files to Cloudinary. Returns updated file list."""
@@ -43,30 +45,27 @@ def _save_challenge_files(challenge_id: int, files) -> list:
             saved.append(result)
     return saved
 
-
 def _get_existing_files(challenge_id: int) -> list:
     """Load existing file list from challenge.files_json."""
-    ch = Challenge.query.get(challenge_id)
+    ch = db.session.get(Challenge, challenge_id)
     if ch and ch.files_json:
         try:
             return json.loads(ch.files_json)
-        except Exception:
+        except (json.JSONDecodeError, TypeError):
             pass
     return []
-
 
 @admin_bp.before_request
 def require_admin():
     if not current_user.is_authenticated:
         return redirect(url_for('auth.login'))
-    if not current_user.is_admin:
-        from flask import abort
+    if not getattr(current_user, 'is_admin', False):
         abort(403)
 
-
-# â”€â”€ Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ---------------- Dashboard ----------------
 
 @admin_bp.route('/')
+@login_required
 def dashboard():
     stats = {
         'users':       User.query.count(),
@@ -91,23 +90,24 @@ def dashboard():
 
     return render_template('admin/dashboard.html', stats=stats, state=state, health=health)
 
-
-# â”€â”€ Event Control â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ---------------- Event Control ----------------
 
 @admin_bp.route('/event', methods=['POST'])
+@login_required
 def event_control():
     state = EventState.get()
     action = request.form.get('action')
+    now_utc = datetime.now(timezone.utc)
 
     if action == 'start':
         state.is_started = True
         state.is_ended   = False
-        state.start_time = datetime.utcnow()
+        state.start_time = now_utc
         flash('Event started.', 'success')
     elif action == 'end':
         state.is_ended   = True
         state.is_frozen  = False
-        state.end_time   = datetime.utcnow()
+        state.end_time   = now_utc
         flash('Event ended.', 'success')
     elif action == 'freeze':
         state.is_frozen  = True
@@ -120,15 +120,10 @@ def event_control():
         if prefix:
             state.flag_prefix = prefix
             flash(f'Flag prefix updated to {prefix}.', 'success')
-    
     elif action == 'reset_event':
-        from app.models.submission import Submission, Solve
-        from app.models.security import SecurityEvent
-        # Reset all submissions, solves and security events
         SecurityEvent.query.delete()
         Solve.query.delete()
         Submission.query.delete()
-        # Reset event state
         state.is_started = False
         state.is_ended   = False
         state.is_frozen  = False
@@ -137,7 +132,7 @@ def event_control():
         state.announcement = None
         db.session.commit()
         flush_cache()
-        flash('Event fully reset. All solves, submissions and alerts cleared.', 'warning')
+        flash('Event fully reset. All data cleared.', 'warning')
         return redirect(url_for('admin.dashboard'))
     elif action == 'announce':
         msg = request.form.get('announcement', '').strip()
@@ -149,16 +144,16 @@ def event_control():
         state.is_frozen  = False
         state.start_time = None
         state.end_time   = None
-        flash('Event reset.', 'warning')
+        flash('State reset.', 'warning')
 
     db.session.commit()
     flush_cache()
     return redirect(url_for('admin.dashboard'))
 
-
-# â”€â”€ Users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ---------------- Users ----------------
 
 @admin_bp.route('/users')
+@login_required
 def users():
     q = request.args.get('q', '')
     query = User.query
@@ -166,77 +161,63 @@ def users():
         query = query.filter(
             (User.username.ilike(f'%{q}%')) | (User.email.ilike(f'%{q}%'))
         )
-    users = query.order_by(User.created_at.desc()).all()
-    return render_template('admin/users.html', users=users, q=q)
-
+    user_list = query.order_by(User.created_at.desc()).all()
+    return render_template('admin/users.html', users=user_list, q=q)
 
 @admin_bp.route('/users/<int:user_id>/action', methods=['POST'])
+@login_required
 def user_action(user_id):
-    user = User.query.get_or_404(user_id)
+    user = db.session.get(User, user_id)
+    if not user:
+        abort(404)
     action = request.form.get('action')
 
     if action == 'ban':
         user.is_banned = True
-        flash(f'User {user.username} banned.', 'warning')
     elif action == 'unban':
         user.is_banned = False
-        flash(f'User {user.username} unbanned.', 'success')
     elif action == 'verify':
         user.is_verified = True
-        flash(f'User {user.username} verified.', 'success')
     elif action == 'make_admin':
         user.is_admin = True
-        flash(f'User {user.username} promoted to admin.', 'success')
     elif action == 'remove_admin':
         user.is_admin = False
-        flash(f'Admin removed from {user.username}.', 'info')
     elif action == 'delete':
         if user.id == current_user.id:
-            flash('You cannot delete your own account.', 'error')
+            flash('You cannot delete yourself.', 'error')
             return redirect(url_for('admin.users'))
         TeamMember.query.filter_by(user_id=user.id).delete()
         Submission.query.filter_by(user_id=user.id).delete()
         Solve.query.filter_by(user_id=user.id).delete()
         db.session.delete(user)
-        flash(f'User {user.username} deleted.', 'warning')
         db.session.commit()
+        flash(f'User {user.username} deleted.', 'warning')
         return redirect(url_for('admin.users'))
 
     db.session.commit()
+    flash('User updated.', 'success')
     return redirect(url_for('admin.users'))
 
-
-# â”€â”€ Teams â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ---------------- Teams ----------------
 
 @admin_bp.route('/teams')
+@login_required
 def teams():
-    teams = Team.query.order_by(Team.name).all()
-    return render_template('admin/teams.html', teams=teams)
-
+    team_list = Team.query.order_by(Team.name).all()
+    return render_template('admin/teams.html', teams=team_list)
 
 @admin_bp.route('/teams/<int:team_id>/action', methods=['POST'])
+@login_required
 def team_action(team_id):
-    team = Team.query.get_or_404(team_id)
+    team = db.session.get(Team, team_id)
+    if not team:
+        abort(404)
     action = request.form.get('action')
 
     if action == 'ban':
         team.is_banned = True
-        flash(f'Team {team.name} banned.', 'warning')
     elif action == 'unban':
         team.is_banned = False
-        flash(f'Team {team.name} unbanned.', 'success')
-    elif action == 'pause':
-        team.is_paused = True
-        flash(f'Team {team.name} paused.', 'warning')
-    elif action == 'unpause':
-        team.is_paused = False
-        flash(f'Team {team.name} unpaused.', 'success')
-    elif action == 'restrict':
-        team.is_restricted = True
-        flash(f'Team {team.name} restricted from challenges.', 'warning')
-    elif action == 'unrestrict':
-        team.is_restricted = False
-        flash(f'Team {team.name} unrestricted.', 'success')
     elif action == 'reset':
         Solve.query.filter_by(team_id=team.id).delete()
         Submission.query.filter_by(team_id=team.id).delete()
@@ -245,53 +226,52 @@ def team_action(team_id):
         flash(f'Team {team.name} progress reset.', 'warning')
         return redirect(url_for('admin.teams'))
     elif action == 'delete':
-        team_name = team.name
         Solve.query.filter_by(team_id=team.id).delete()
         Submission.query.filter_by(team_id=team.id).delete()
         TeamMember.query.filter_by(team_id=team.id).delete()
         db.session.delete(team)
         db.session.commit()
         flush_cache()
-        flash(f'Team {team_name} permanently deleted.', 'warning')
+        flash('Team deleted.', 'warning')
         return redirect(url_for('admin.teams'))
 
     db.session.commit()
     return redirect(url_for('admin.teams'))
 
-
-# â”€â”€ Challenges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ---------------- Challenges ----------------
 
 @admin_bp.route('/challenges')
+@login_required
 def challenges():
     chals = Challenge.query.order_by(Challenge.category, Challenge.points).all()
     return render_template('admin/challenges.html', challenges=chals)
 
-
 @admin_bp.route('/challenges/new', methods=['GET', 'POST'])
+@login_required
 def challenge_new():
     if request.method == 'POST':
-        title  = request.form.get('title', '').strip()
-        slug   = slugify(title)
+        title = request.form.get('title', '').strip()
+        slug = slugify(title)
         if not title:
             flash('Title required.', 'error')
             return render_template('admin/challenge_form.html', challenge=None)
 
         if Challenge.query.filter_by(slug=slug).first():
-            flash('Challenge title already exists.', 'error')
+            flash('Title already exists.', 'error')
             return render_template('admin/challenge_form.html', challenge=None)
 
         ch = Challenge(
-            title       = title,
-            slug        = slug,
-            description = request.form.get('description', ''),
-            category    = request.form.get('category', 'misc'),
-            points      = int(request.form.get('points', 100)),
-            difficulty  = request.form.get('difficulty', 'easy'),
-            flag        = request.form.get('flag', '').strip(),
-            is_dynamic  = 'is_dynamic' in request.form,
-            is_hidden   = 'is_hidden' in request.form,
-            is_boss     = 'is_boss' in request.form,
-            connection_info = request.form.get('connection_info', '').strip() or None,
+            title=title,
+            slug=slug,
+            description=request.form.get('description', ''),
+            category=request.form.get('category', 'misc'),
+            points=int(request.form.get('points', 100)),
+            difficulty=request.form.get('difficulty', 'easy'),
+            flag=request.form.get('flag', '').strip(),
+            is_dynamic='is_dynamic' in request.form,
+            is_hidden='is_hidden' in request.form,
+            is_boss='is_boss' in request.form,
+            connection_info=request.form.get('connection_info', '').strip() or None,
         )
         db.session.add(ch)
         db.session.flush()
@@ -308,21 +288,23 @@ def challenge_new():
 
     return render_template('admin/challenge_form.html', challenge=None)
 
-
 @admin_bp.route('/challenges/<int:chal_id>/edit', methods=['GET', 'POST'])
+@login_required
 def challenge_edit(chal_id):
-    ch = Challenge.query.get_or_404(chal_id)
+    ch = db.session.get(Challenge, chal_id)
+    if not ch:
+        abort(404)
     if request.method == 'POST':
-        ch.title        = request.form.get('title', ch.title).strip()
-        ch.slug         = slugify(ch.title)
-        ch.description  = request.form.get('description', ch.description)
-        ch.category     = request.form.get('category', ch.category)
-        ch.points       = int(request.form.get('points', ch.points))
-        ch.difficulty   = request.form.get('difficulty', ch.difficulty)
-        ch.flag         = request.form.get('flag', ch.flag).strip()
-        ch.is_dynamic   = 'is_dynamic' in request.form
-        ch.is_hidden    = 'is_hidden' in request.form
-        ch.is_boss      = 'is_boss' in request.form
+        ch.title = request.form.get('title', ch.title).strip()
+        ch.slug = slugify(ch.title)
+        ch.description = request.form.get('description', ch.description)
+        ch.category = request.form.get('category', ch.category)
+        ch.points = int(request.form.get('points', ch.points))
+        ch.difficulty = request.form.get('difficulty', ch.difficulty)
+        ch.flag = request.form.get('flag', ch.flag).strip()
+        ch.is_dynamic = 'is_dynamic' in request.form
+        ch.is_hidden = 'is_hidden' in request.form
+        ch.is_boss = 'is_boss' in request.form
         ch.connection_info = request.form.get('connection_info', '').strip() or None
 
         files = request.files.getlist('challenge_files')
@@ -341,36 +323,13 @@ def challenge_edit(chal_id):
 
     return render_template('admin/challenge_form.html', challenge=ch)
 
-
-@admin_bp.route('/challenges/<int:chal_id>/delete-file', methods=['POST', 'GET'])
-def challenge_delete_file(chal_id):
-    ch = Challenge.query.get_or_404(chal_id)
-    filename = request.form.get('filename') or request.args.get('filename', '')
-    if filename and ch.files_json:
-        files = json.loads(ch.files_json)
-        files = [f for f in files if f['name'] != filename]
-        ch.files_json = json.dumps(files) if files else None
-        from app.services.storage_service import delete_file
-        delete_file(chal_id, filename)
-        db.session.commit()
-        flash(f'File "{filename}" deleted.', 'success')
-    return redirect(url_for('admin.challenge_edit', chal_id=chal_id))
-
-
-@admin_bp.route('/challenges/<int:chal_id>/toggle-hidden', methods=['POST'])
-def challenge_toggle_hidden(chal_id):
-    ch = Challenge.query.get_or_404(chal_id)
-    ch.is_hidden = not ch.is_hidden
-    db.session.commit()
-    flash(f'Challenge {"hidden" if ch.is_hidden else "visible"}.', 'info')
-    return redirect(url_for('admin.challenges'))
-
-
 @admin_bp.route('/challenges/<int:chal_id>/delete', methods=['POST'])
+@login_required
 def challenge_delete(chal_id):
-    ch = Challenge.query.get_or_404(chal_id)
+    ch = db.session.get(Challenge, chal_id)
+    if not ch:
+        abort(404)
     try:
-        from app.models.security import SecurityEvent
         SecurityEvent.query.filter_by(challenge_id=chal_id).update({'challenge_id': None})
         Hint.query.filter_by(challenge_id=chal_id).delete()
         Solve.query.filter_by(challenge_id=chal_id).delete()
@@ -384,12 +343,12 @@ def challenge_delete(chal_id):
         flash(f'Delete failed: {str(e)}', 'error')
     return redirect(url_for('admin.challenges'))
 
-
 @admin_bp.route('/challenges/import', methods=['POST'])
+@login_required
 def challenge_import():
     f = request.files.get('zip_file')
     if not f or not f.filename.endswith('.zip'):
-        flash('Please upload a .zip file.', 'error')
+        flash('Upload a .zip file.', 'error')
         return redirect(url_for('admin.challenges'))
 
     with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as tmp:
@@ -398,49 +357,43 @@ def challenge_import():
 
     os.unlink(tmp.name)
     if success:
-        flash('Challenge imported successfully.', 'success')
+        flash('Imported successfully.', 'success')
     else:
-        flash('Import failed or challenge already exists.', 'error')
+        flash('Import failed.', 'error')
 
     return redirect(url_for('admin.challenges'))
 
-
-# â”€â”€ Submissions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ---------------- Submissions & Security ----------------
 
 @admin_bp.route('/submissions')
+@login_required
 def submissions():
     page = request.args.get('page', 1, type=int)
-    q    = request.args.get('q', '')
+    q = request.args.get('q', '')
     query = Submission.query.order_by(Submission.submitted_at.desc())
     if q:
-        from app.models.team import Team as T
-        query = query.join(T).filter(T.name.ilike(f'%{q}%'))
+        query = query.join(Team).filter(Team.name.ilike(f'%{q}%'))
     subs = query.paginate(page=page, per_page=50, error_out=False)
     return render_template('admin/submissions.html', subs=subs, q=q)
 
-
-# â”€â”€ Security Monitor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 @admin_bp.route('/security')
+@login_required
 def security():
-    events = SecurityEvent.query.order_by(
-        SecurityEvent.created_at.desc()
-    ).limit(200).all()
+    events = SecurityEvent.query.order_by(SecurityEvent.created_at.desc()).limit(200).all()
     return render_template('admin/security.html', events=events)
 
-
 @admin_bp.route('/security/<int:ev_id>/review', methods=['POST'])
+@login_required
 def security_review(ev_id):
-    ev = SecurityEvent.query.get_or_404(ev_id)
-    ev.is_reviewed = True
-    db.session.commit()
-    flash('Event marked as reviewed.', 'success')
+    ev = db.session.get(SecurityEvent, ev_id)
+    if ev:
+        ev.is_reviewed = True
+        db.session.commit()
+        flash('Reviewed.', 'success')
     return redirect(url_for('admin.security'))
 
-
-# â”€â”€ Settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 @admin_bp.route('/settings')
+@login_required
 def settings():
     state = EventState.get()
     return render_template('admin/settings.html', state=state)
