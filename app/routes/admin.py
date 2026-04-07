@@ -25,6 +25,7 @@ ALLOWED_EXTENSIONS = {
     'zip', 'tar', 'gz', 'py', 'c', 'cpp', 'elf', 'exe', 'png', 'jpg',
     'jpeg', 'gif', 'pcap', 'pcapng', 'txt', 'pdf', 'bin', 'sh', 'js',
     'html', 'php', 'rb', 'go', 'rs', 'java', 'class', 'jar', 'sql',
+    'log', 'dd'
 }
 
 # ---------------- Helper Functions ----------------
