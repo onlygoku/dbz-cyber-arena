@@ -28,9 +28,10 @@ def _get_solved_categories(team):
 
 
 def _all_categories_solved(team):
-    """Check if team has solved at least 1 challenge from every non-boss category."""
+    """Check if team has solved at least 1 challenge from every non-boss category (ignoring pwn)."""
     all_cats = set(
         ch.category for ch in Challenge.query.filter_by(is_hidden=False, is_boss=False).all()
+        if ch.category != 'pwn'
     )
     solved_cats = _get_solved_categories(team)
     return all_cats.issubset(solved_cats)
