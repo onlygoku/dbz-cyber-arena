@@ -30,6 +30,7 @@ def upload_file(file, challenge_id, filename):
 
         # Force correct URL with extension
         url = result['secure_url']
+        url = url.replace('/upload/', '/upload/fl_attachment/')
         if ext and not url.endswith(f'.{ext}'):
             url = f"{url}.{ext}"
 
